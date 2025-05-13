@@ -1,0 +1,292 @@
+<%- include('../../partials/messages') %>
+
+<div class="container-fluid">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Customer Details</h1>
+    <div>
+      <a href="/customers" class="btn btn-secondary btn-sm">
+        <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Customers
+      </a>
+      <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editCustomerModal">
+        <i class="fas fa-edit fa-sm text-white-50"></i> Edit Customer
+      </button>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Customer Info Card -->
+    <div class="col-xl-4 col-md-6 mb-4">
+      <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Customer Information</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800"><%= customer.first_name %> <%= customer.last_name %></div>
+              <div class="mt-2">
+                <p><i class="fas fa-envelope fa-fw"></i> <%= customer.email || 'No email provided' %></p>
+                <p><i class="fas fa-phone fa-fw"></i> <%= customer.phone || 'No phone provided' %></p>
+                <p><i class="fas fa-map-marker-alt fa-fw"></i> <%= customer.address || 'No address provided' %></p>
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-user fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loyalty Info Card -->
+    <div class="col-xl-4 col-md-6 mb-4">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Loyalty Program</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                <% if (customer.loyalty_card_id) { %>
+                  Card #: <%= customer.loyalty_card_id %>
+                <% } else { %>
+                  Not enrolled
+                <% } %>
+              </div>
+              <div class="mt-2">
+                <p>Points: <strong><%= customer.points || 0 %></strong></p>
+                <p>Tier: 
+                  <% if (customer.tier_name) { %>
+                    <span class="badge bg-<%= customer.tier_color || 'secondary' %>"><%= customer.tier_name %></span>
+                  <% } else { %>
+                    <span class="badge bg-secondary">None</span>
+                  <% } %>
+                </p>
+                <button type="button" class="btn btn-sm btn-success mt-2" data-bs-toggle="modal" data-bs-target="#adjustPointsModal" data-customer-id="<%= customer.id %>" data-customer-name="<%= customer.first_name %> <%= customer.last_name %>">
+                  <i class="fas fa-plus-circle"></i> Adjust Points
+                </button>
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-award fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Purchase Info Card -->
+    <div class="col-xl-4 col-md-6 mb-4">
+      <div class="card border-left-info shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Purchase History</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                $<%= typeof customer.total_spent === 'number' ? customer.total_spent.toFixed(2) : (customer.total_spent || '0.00') %>
+              </div>
+              <div class="mt-2">
+                <p>Orders: <strong><%= customer.order_count || 0 %></strong></p>
+                <p>Last Purchase: 
+                  <% if (customer.last_purchase) { %>
+                    <%= new Date(customer.last_purchase).toLocaleDateString() %>
+                  <% } else { %>
+                    Never
+                  <% } %>
+                </p>
+                <a href="/orders?customer_id=<%= customer.id %>" class="btn btn-sm btn-info mt-2">
+                  <i class="fas fa-shopping-cart"></i> View Orders
+                </a>
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Orders -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Recent Orders</h6>
+    </div>
+    <div class="card-body">
+      <% if (orders && orders.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-bordered" width="100%" cellspacing="0">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Date</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% orders.forEach(order => { %>
+                <tr>
+                  <td><%= order.order_number %></td>
+                  <td><%= new Date(order.order_date).toLocaleDateString() %></td>
+                  <td><%= order.item_count %></td>
+                  <td>$<%= typeof order.total_amount === 'number' ? order.total_amount.toFixed(2) : order.total_amount %></td>
+                  <td>
+                    <% if (order.status === 'pending') { %>
+                      <span class="badge bg-warning text-dark">Pending</span>
+                    <% } else if (order.status === 'processing') { %>
+                      <span class="badge bg-info">Processing</span>
+                    <% } else if (order.status === 'shipped') { %>
+                      <span class="badge bg-primary">Shipped</span>
+                    <% } else if (order.status === 'delivered') { %>
+                      <span class="badge bg-success">Delivered</span>
+                    <% } else if (order.status === 'cancelled') { %>
+                      <span class="badge bg-danger">Cancelled</span>
+                    <% } else if (order.status === 'refunded') { %>
+                      <span class="badge bg-secondary">Refunded</span>
+                    <% } else { %>
+                      <span class="badge bg-secondary"><%= order.status %></span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <a href="/orders/<%= order.id %>" class="btn btn-sm btn-info">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center py-4">
+          <p class="text-muted">No orders found for this customer.</p>
+          <a href="/drafts/create?customer_id=<%= customer.id %>" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Create New Order
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Customer Modal -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editCustomerModalLabel">Edit Customer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/customers/update/<%= customer.id %>" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="editFirstName" class="form-label">First Name</label>
+            <input type="text" class="form-control" id="editFirstName" name="first_name" value="<%= customer.first_name %>" required>
+          </div>
+          <div class="mb-3">
+            <label for="editLastName" class="form-label">Last Name</label>
+            <input type="text" class="form-control" id="editLastName" name="last_name" value="<%= customer.last_name %>" required>
+          </div>
+          <div class="mb-3">
+            <label for="editEmail" class="form-label">Email</label>
+            <input type="email" class="form-control" id="editEmail" name="email" value="<%= customer.email || '' %>">
+          </div>
+          <div class="mb-3">
+            <label for="editPhone" class="form-label">Phone</label>
+            <input type="text" class="form-control" id="editPhone" name="phone" value="<%= customer.phone || '' %>">
+          </div>
+          <div class="mb-3">
+            <label for="editAddress" class="form-label">Address</label>
+            <textarea class="form-control" id="editAddress" name="address" rows="3"><%= customer.address || '' %></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="editLoyaltyCardId" class="form-label">Loyalty Card ID</label>
+            <input type="text" class="form-control" id="editLoyaltyCardId" name="loyalty_card_id" value="<%= customer.loyalty_card_id || '' %>" maxlength="16">
+            <div class="form-text">16-digit number that can be scanned for loyalty points</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Adjust Points Modal -->
+<div class="modal fade" id="adjustPointsModal" tabindex="-1" aria-labelledby="adjustPointsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="adjustPointsModalLabel">Adjust Loyalty Points</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/customers/adjust-points/<%= customer.id %>" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="pointsAdjustment" class="form-label">Points Adjustment</label>
+            <input type="number" class="form-control" id="pointsAdjustment" name="points" required>
+            <div class="form-text">Enter a positive number to add points or a negative number to deduct points.</div>
+          </div>
+          <div class="mb-3">
+            <label for="adjustmentReason" class="form-label">Reason</label>
+            <select class="form-control" id="adjustmentReason" name="reason" required>
+              <option value="">-- Select Reason --</option>
+              <option value="purchase">Purchase</option>
+              <option value="refund">Refund</option>
+              <option value="promotion">Promotion</option>
+              <option value="correction">Correction</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="adjustmentNotes" class="form-label">Notes</label>
+            <textarea class="form-control" id="adjustmentNotes" name="notes" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../../partials/footer') %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Generate random 16-digit loyalty card ID
+    const generateButton = document.getElementById('generateLoyaltyId');
+    const loyaltyCardInput = document.getElementById('editLoyaltyCardId');
+    
+    if (generateButton && loyaltyCardInput) {
+      generateButton.addEventListener('click', function() {
+        let cardId = '';
+        for (let i = 0; i < 16; i++) {
+          cardId += Math.floor(Math.random() * 10);
+        }
+        loyaltyCardInput.value = cardId;
+      });
+    }
+
+    // Adjust points modal
+    const adjustPointsModal = document.getElementById('adjustPointsModal');
+    if (adjustPointsModal) {
+      adjustPointsModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const customerId = button.getAttribute('data-customer-id');
+        const customerName = button.getAttribute('data-customer-name');
+        
+        const modalTitle = adjustPointsModal.querySelector('.modal-title');
+        modalTitle.textContent = `Adjust Points for ${customerName}`;
+        
+        const form = adjustPointsModal.querySelector('form');
+        form.action = `/customers/adjust-points/${customerId}`;
+      });
+    }
+  });
+</script>

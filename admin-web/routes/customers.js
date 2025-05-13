@@ -14,6 +14,7 @@ router.get('/create', customerController.getCreateCustomer);
 router.post('/create', customerController.createCustomer);
 router.get('/edit/:id', customerController.getEditCustomer);
 router.post('/edit/:id', customerController.updateCustomer);
+router.post('/update/:id', customerController.updateCustomer);
 router.get('/:id', customerController.getCustomerDetails);
 router.post('/delete/:id', customerController.deleteCustomer);
 router.post('/:id/add-points', customerController.addLoyaltyPoints);

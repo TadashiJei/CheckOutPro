@@ -144,7 +144,7 @@
                       <td><a href="/customers/<%= member.id %>"><%= member.first_name %> <%= member.last_name %></a></td>
                       <td><%= member.points %></td>
                       <td><span class="badge bg-<%= member.tier_color || 'secondary' %>"><%= member.tier_name || 'None' %></span></td>
-                      <td>$<%= member.total_spent.toFixed(2) %></td>
+                      <td>$<%= typeof member.total_spent === 'number' ? member.total_spent.toFixed(2) : (member.total_spent || '0.00') %></td>
                       <td><%= member.last_purchase ? new Date(member.last_purchase).toLocaleDateString() : 'N/A' %></td>
                     </tr>
                   <% }); %>
