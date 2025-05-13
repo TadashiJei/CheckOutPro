@@ -1,0 +1,229 @@
+<%- include('../../partials/messages') %>
+
+<div class="container-fluid">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Create Draft Order</h1>
+    <a href="/drafts" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+      <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Draft Orders
+    </a>
+  </div>
+
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Draft Order Details</h6>
+    </div>
+    <div class="card-body">
+      <form action="/drafts/create" method="POST" id="draftOrderForm">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="customer_id">Customer (Optional)</label>
+              <select class="form-control" id="customer_id" name="customer_id">
+                <option value="">-- Select Customer --</option>
+                <% if (customers && customers.length > 0) { %>
+                  <% customers.forEach(customer => { %>
+                    <option value="<%= customer.id %>"><%= customer.first_name %> <%= customer.last_name %> (<%= customer.email %>)</option>
+                  <% }) %>
+                <% } %>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="notes">Notes</label>
+              <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Add notes about this draft order"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <h5 class="mt-4 mb-3">Order Items</h5>
+        <div class="table-responsive">
+          <table class="table table-bordered" id="orderItemsTable">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th width="120">Quantity</th>
+                <th width="150">Price</th>
+                <th width="150">Subtotal</th>
+                <th width="50">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="orderItems">
+              <tr class="item-row">
+                <td>
+                  <select class="form-control product-select" name="items[product_id][]" required>
+                    <option value="">-- Select Product --</option>
+                    <% if (products && products.length > 0) { %>
+                      <% products.forEach(product => { %>
+                        <option value="<%= product.id %>" data-price="<%= product.price %>"><%= product.name %> (SKU: <%= product.sku %>)</option>
+                      <% }) %>
+                    </select>
+                  </td>
+                  <td>
+                    <input type="number" class="form-control quantity-input" name="items[quantity][]" min="1" value="1" required>
+                  </td>
+                  <td>
+                    <input type="number" class="form-control price-input" name="items[price][]" step="0.01" min="0" required>
+                  </td>
+                  <td>
+                    <span class="subtotal">0.00</span>
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>
+                  </td>
+                <% } %>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button type="button" class="btn btn-info mt-2" id="addItemBtn">
+          <i class="fas fa-plus"></i> Add Item
+        </button>
+
+        <div class="row mt-4">
+          <div class="col-md-6 offset-md-6">
+            <div class="card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                  <h6 class="font-weight-bold">Total:</h6>
+                  <h6 class="font-weight-bold" id="orderTotal">$0.00</h6>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 text-right">
+          <button type="button" class="btn btn-secondary" onclick="window.location.href='/drafts'">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Draft Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add item button
+    document.getElementById('addItemBtn').addEventListener('click', function() {
+      addItemRow();
+    });
+
+    // Initialize first row
+    const productSelects = document.querySelectorAll('.product-select');
+    if (productSelects.length > 0) {
+      productSelects.forEach(select => {
+        select.addEventListener('change', updatePrice);
+      });
+    }
+
+    // Initialize quantity inputs
+    const quantityInputs = document.querySelectorAll('.quantity-input');
+    if (quantityInputs.length > 0) {
+      quantityInputs.forEach(input => {
+        input.addEventListener('change', updateSubtotal);
+      });
+    }
+
+    // Initialize price inputs
+    const priceInputs = document.querySelectorAll('.price-input');
+    if (priceInputs.length > 0) {
+      priceInputs.forEach(input => {
+        input.addEventListener('change', updateSubtotal);
+      });
+    }
+
+    // Remove item button
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('remove-item') || e.target.parentElement.classList.contains('remove-item')) {
+        const button = e.target.classList.contains('remove-item') ? e.target : e.target.parentElement;
+        const row = button.closest('tr');
+        if (document.querySelectorAll('.item-row').length > 1) {
+          row.remove();
+          calculateTotal();
+        } else {
+          alert('You must have at least one item in the order.');
+        }
+      }
+    });
+
+    // Function to add a new item row
+    function addItemRow() {
+      const itemsTable = document.getElementById('orderItems');
+      const newRow = document.createElement('tr');
+      newRow.className = 'item-row';
+      
+      // Get the product options
+      const productOptions = document.querySelector('.product-select').innerHTML;
+      
+      newRow.innerHTML = `
+        <td>
+          <select class="form-control product-select" name="items[product_id][]" required>
+            ${productOptions}
+          </select>
+        </td>
+        <td>
+          <input type="number" class="form-control quantity-input" name="items[quantity][]" min="1" value="1" required>
+        </td>
+        <td>
+          <input type="number" class="form-control price-input" name="items[price][]" step="0.01" min="0" required>
+        </td>
+        <td>
+          <span class="subtotal">0.00</span>
+        </td>
+        <td>
+          <button type="button" class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>
+        </td>
+      `;
+      
+      itemsTable.appendChild(newRow);
+      
+      // Add event listeners to new row
+      const newSelect = newRow.querySelector('.product-select');
+      newSelect.addEventListener('change', updatePrice);
+      
+      const newQuantity = newRow.querySelector('.quantity-input');
+      newQuantity.addEventListener('change', updateSubtotal);
+      
+      const newPrice = newRow.querySelector('.price-input');
+      newPrice.addEventListener('change', updateSubtotal);
+    }
+
+    // Function to update price when product is selected
+    function updatePrice(e) {
+      const select = e.target;
+      const option = select.options[select.selectedIndex];
+      const price = option.dataset.price || 0;
+      const row = select.closest('tr');
+      const priceInput = row.querySelector('.price-input');
+      
+      priceInput.value = price;
+      updateSubtotal({ target: priceInput });
+    }
+
+    // Function to update subtotal
+    function updateSubtotal(e) {
+      const input = e.target;
+      const row = input.closest('tr');
+      const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+      const price = parseFloat(row.querySelector('.price-input').value) || 0;
+      const subtotal = quantity * price;
+      
+      row.querySelector('.subtotal').textContent = subtotal.toFixed(2);
+      calculateTotal();
+    }
+
+    // Function to calculate total
+    function calculateTotal() {
+      let total = 0;
+      const subtotals = document.querySelectorAll('.subtotal');
+      
+      subtotals.forEach(span => {
+        total += parseFloat(span.textContent) || 0;
+      });
+      
+      document.getElementById('orderTotal').textContent = '$' + total.toFixed(2);
+    }
+  });
+</script>
