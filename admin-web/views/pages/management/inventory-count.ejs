@@ -1,0 +1,197 @@
+<%- include('../../partials/header') %>
+<%- include('../../partials/sidebar') %>
+
+<div class="content-wrapper">
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0"><%= title %></h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+            <li class="breadcrumb-item"><a href="/management/employees">Employees</a></li>
+            <li class="breadcrumb-item"><a href="/management/employees/<%= employee.id %>/inventory">Inventory Responsibilities</a></li>
+            <li class="breadcrumb-item active">Record Count</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="content">
+    <div class="container-fluid">
+      <% if (messages.error) { %>
+        <div class="alert alert-danger alert-dismissible">
+          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+          <h5><i class="icon fas fa-ban"></i> Error!</h5>
+          <%= messages.error %>
+        </div>
+      <% } %>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">Record Inventory Count</h3>
+            </div>
+            <form method="POST" action="/management/employees/<%= employee.id %>/inventory/count">
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="product_id">Product</label>
+                  <select id="product_id" name="product_id" class="form-control select2" required>
+                    <option value="">Select Product</option>
+                    <% products.forEach(function(product) { %>
+                      <option value="<%= product.id %>" data-quantity="<%= product.quantity %>">
+                        <%= product.name %> (SKU: <%= product.sku %>) - Current Qty: <%= product.quantity %>
+                      </option>
+                    <% }); %>
+                  </select>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label for="expected_quantity">Expected Quantity</label>
+                    <input type="number" class="form-control" id="expected_quantity" name="expected_quantity" min="0" required readonly>
+                    <small class="form-text text-muted">This is the current quantity in the system</small>
+                  </div>
+                  
+                  <div class="form-group col-md-6">
+                    <label for="actual_quantity">Actual Quantity</label>
+                    <input type="number" class="form-control" id="actual_quantity" name="actual_quantity" min="0" required>
+                    <small class="form-text text-muted">Enter the actual quantity counted</small>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="notes">Notes</label>
+                  <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Enter notes about the count or any discrepancies"></textarea>
+                </div>
+                
+                <div id="discrepancy-alert" class="alert alert-warning d-none">
+                  <i class="icon fas fa-exclamation-triangle"></i> <span id="discrepancy-message"></span>
+                </div>
+              </div>
+              
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Record Count</button>
+                <a href="/management/employees/<%= employee.id %>/inventory" class="btn btn-default float-right">Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Assigned Inventory Areas</h3>
+            </div>
+            <div class="card-body p-0">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Category/Section</th>
+                    <th>Responsibility Type</th>
+                    <th>Products</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (assignments.length === 0) { %>
+                    <tr>
+                      <td colspan="4" class="text-center">No inventory responsibilities assigned</td>
+                    </tr>
+                  <% } else { %>
+                    <% assignments.forEach(function(assignment) { %>
+                      <tr>
+                        <td>
+                          <% if (assignment.category_name) { %>
+                            <span class="badge badge-primary">Category</span> <%= assignment.category_name %>
+                          <% } %>
+                          <% if (assignment.section) { %>
+                            <span class="badge badge-info">Section</span> <%= assignment.section %>
+                          <% } %>
+                          <% if (!assignment.category_name && !assignment.section) { %>
+                            N/A
+                          <% } %>
+                        </td>
+                        <td><%= assignment.responsibility_type %></td>
+                        <td><%= assignment.product_count || 0 %></td>
+                        <td>
+                          <% if (assignment.active) { %>
+                            <span class="badge badge-success">Active</span>
+                          <% } else { %>
+                            <span class="badge badge-secondary">Inactive</span>
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<%- include('../../partials/footer') %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2
+    $('.select2').select2();
+    
+    // Handle product selection
+    const productSelect = document.getElementById('product_id');
+    const expectedQuantityInput = document.getElementById('expected_quantity');
+    const actualQuantityInput = document.getElementById('actual_quantity');
+    const discrepancyAlert = document.getElementById('discrepancy-alert');
+    const discrepancyMessage = document.getElementById('discrepancy-message');
+    
+    productSelect.addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      const quantity = selectedOption.getAttribute('data-quantity');
+      
+      expectedQuantityInput.value = quantity || 0;
+      actualQuantityInput.value = quantity || 0;
+      
+      // Hide discrepancy alert
+      discrepancyAlert.classList.add('d-none');
+    });
+    
+    // Check for discrepancies
+    actualQuantityInput.addEventListener('input', function() {
+      const expected = parseInt(expectedQuantityInput.value) || 0;
+      const actual = parseInt(this.value) || 0;
+      
+      if (expected !== actual) {
+        const difference = actual - expected;
+        const message = difference > 0 
+          ? `Excess of ${difference} units found.` 
+          : `Shortage of ${Math.abs(difference)} units found.`;
+        
+        discrepancyMessage.textContent = message;
+        discrepancyAlert.classList.remove('d-none');
+      } else {
+        discrepancyAlert.classList.add('d-none');
+      }
+    });
+    
+    // Form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+      const productId = productSelect.value;
+      
+      if (!productId) {
+        event.preventDefault();
+        alert('Please select a product.');
+      }
+    });
+  });
+</script>

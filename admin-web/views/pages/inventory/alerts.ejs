@@ -1,0 +1,144 @@
+<!-- Low Stock Alerts Page -->
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Low Stock Alerts</h1>
+    <a href="/inventory" class="btn btn-primary">
+      <i class="fas fa-arrow-left me-2"></i> Back to Inventory
+    </a>
+  </div>
+
+  <% if (lowStockItems && lowStockItems.length > 0) { %>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Products Below Minimum Stock Level</h6>
+        <span class="badge bg-warning text-dark"><%= lowStockItems.length %> items need attention</span>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered" id="lowStockTable" width="100%" cellspacing="0">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Current Stock</th>
+                <th>Min. Stock Level</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% lowStockItems.forEach(item => { %>
+                <tr>
+                  <td class="text-center">
+                    <% if (item.image_url) { %>
+                      <img src="<%= item.image_url %>" alt="<%= item.product_name %>" class="img-thumbnail" style="max-width: 50px;">
+                    <% } else { %>
+                      <div class="bg-light text-center p-2 rounded">
+                        <i class="fas fa-image text-muted"></i>
+                      </div>
+                    <% } %>
+                  </td>
+                  <td><%= item.product_name %></td>
+                  <td>u20b1<%= parseFloat(item.price).toFixed(2) %></td>
+                  <td>
+                    <span class="text-danger fw-bold">
+                      <%= item.quantity %>
+                    </span>
+                  </td>
+                  <td><%= item.min_stock_level %></td>
+                  <td>
+                    <% if (item.quantity <= 0) { %>
+                      <span class="badge bg-danger">Out of Stock</span>
+                    <% } else { %>
+                      <span class="badge bg-warning text-dark">Low Stock</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#restockModal" 
+                      data-product-id="<%= item.product_id %>" 
+                      data-product-name="<%= item.product_name %>" 
+                      data-current-stock="<%= item.quantity %>">
+                      <i class="fas fa-plus-circle"></i> Restock
+                    </button>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="alert alert-success">
+      <i class="fas fa-check-circle me-2"></i> Good news! All products are above their minimum stock levels.
+    </div>
+  <% } %>
+</div>
+
+<!-- Restock Modal -->
+<div class="modal fade" id="restockModal" tabindex="-1" aria-labelledby="restockModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="restockModalLabel">Restock Product</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="restockForm" action="" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="restockQuantity" class="form-label">Quantity to Add</label>
+            <input type="number" class="form-control" id="restockQuantity" name="quantity" min="1" required>
+          </div>
+          <div class="alert alert-info">
+            <div>Product: <strong id="productName"></strong></div>
+            <div>Current Stock: <strong id="currentStock"></strong></div>
+            <div>Min. Stock Level: <strong id="minStockLevel"></strong></div>
+            <div>New Stock: <strong id="newStock"></strong></div>
+          </div>
+          <input type="hidden" name="reason" value="Restock">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Restock</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Restock Modal
+    const restockModal = document.getElementById('restockModal');
+    if (restockModal) {
+      restockModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const productId = button.getAttribute('data-product-id');
+        const productName = button.getAttribute('data-product-name');
+        const currentStock = parseInt(button.getAttribute('data-current-stock'));
+        const minStockLevel = parseInt(button.closest('tr').querySelector('td:nth-child(5)').textContent);
+        
+        // Update the modal content
+        document.getElementById('productName').textContent = productName;
+        document.getElementById('currentStock').textContent = currentStock;
+        document.getElementById('minStockLevel').textContent = minStockLevel;
+        
+        // Calculate suggested restock amount (to reach twice the min level)
+        const suggestedAmount = Math.max(minStockLevel * 2 - currentStock, 1);
+        document.getElementById('restockQuantity').value = suggestedAmount;
+        document.getElementById('newStock').textContent = currentStock + suggestedAmount;
+        
+        // Set the form action
+        document.getElementById('restockForm').action = `/inventory/adjust-stock/${productId}`;
+        
+        // Update new stock when quantity changes
+        document.getElementById('restockQuantity').addEventListener('input', function() {
+          const restockValue = parseInt(this.value) || 0;
+          const newStockValue = currentStock + restockValue;
+          document.getElementById('newStock').textContent = newStockValue;
+        });
+      });
+    }
+  });
+</script>

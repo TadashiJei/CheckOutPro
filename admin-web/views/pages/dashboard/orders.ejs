@@ -1,0 +1,57 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h2">Orders</h1>
+  <div class="btn-group">
+    <a href="/orders" class="btn btn-<%= currentStatus === 'all' ? 'primary' : 'outline-primary' %>">All</a>
+    <a href="/orders?status=pending" class="btn btn-<%= currentStatus === 'pending' ? 'warning' : 'outline-warning' %>">Pending</a>
+    <a href="/orders?status=completed" class="btn btn-<%= currentStatus === 'completed' ? 'success' : 'outline-success' %>">Completed</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if (orders.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(order => { %>
+              <tr>
+                <td><a href="/orders/<%= order.id %>">#<%= order.id %></a></td>
+                <td><span class="badge bg-<%= order.type === 'dine-in' ? 'primary' : 'success' %>"><%= order.type %></span></td>
+                <td><span class="badge bg-<%= order.status === 'pending' ? 'warning' : 'success' %>"><%= order.status %></span></td>
+                <td><%= new Date(order.created_at).toLocaleString() %></td>
+                <td><%= order.itemCount %></td>
+                <td>$<%= Number(order.total).toFixed(2) %></td>
+                <td>
+                  <a href="/orders/<%= order.id %>" class="btn btn-sm btn-primary">View</a>
+                  <% if (order.status === 'pending') { %>
+                    <form action="/orders/<%= order.id %>/status" method="POST" class="d-inline">
+                      <input type="hidden" name="status" value="completed">
+                      <button type="submit" class="btn btn-sm btn-success">Complete</button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="text-center py-5">
+        <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+        <h3>No Orders Found</h3>
+        <p class="text-muted">There are no orders to display.</p>
+      </div>
+    <% } %>
+  </div>
+</div>

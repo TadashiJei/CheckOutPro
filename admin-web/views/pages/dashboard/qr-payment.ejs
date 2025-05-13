@@ -1,0 +1,105 @@
+<%- include('../../partials/messages') %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h2">QR Code Payment</h1>
+  <a href="/payments/<%= order.id %>" class="btn btn-outline-primary">
+    <i class="fas fa-arrow-left me-2"></i>
+    Back to Payment Methods
+  </a>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Scan QR Code to Pay</h5>
+      </div>
+      <div class="card-body text-center">
+        <div class="mb-4">
+          <img src="<%= qrCode.qrCodeUrl %>" alt="Payment QR Code" class="img-fluid" style="max-width: 300px;">
+        </div>
+        <p class="mb-4">Scan the QR code above using your mobile banking app or e-wallet app to complete the payment.</p>
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          This page will automatically redirect to the order details page once payment is confirmed.
+        </div>
+        <div class="mt-4">
+          <div class="d-flex justify-content-center">
+            <div class="spinner-border text-primary me-2" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <span id="statusText">Waiting for payment...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Order Summary</h5>
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Order ID:</span>
+            <span class="fw-bold">#<%= order.id %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Type:</span>
+            <span class="badge bg-<%= order.type === 'dine-in' ? 'primary' : 'success' %>"><%= order.type %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Status:</span>
+            <span class="badge bg-<%= order.status === 'pending' ? 'warning' : 'success' %>"><%= order.status %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Date:</span>
+            <span><%= new Date(order.created_at).toLocaleString() %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Total Items:</span>
+            <span><%= order.items.length %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Total Amount:</span>
+            <span class="fw-bold">$<%= Number(order.total).toFixed(2) %></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Automatically check payment status every 3 seconds
+  function checkPaymentStatus() {
+    const orderId = '<%= order.id %>';
+    const statusText = document.getElementById('statusText');
+    
+    fetch(`/payments/${orderId}/status`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'completed') {
+          // Update status text
+          statusText.textContent = 'Payment completed! Redirecting...';
+          
+          // Redirect to order details page after 2 seconds
+          setTimeout(() => {
+            window.location.href = `/orders/${orderId}?payment=success`;
+          }, 2000);
+        } else if (data.status === 'failed') {
+          statusText.textContent = 'Payment failed. Please try again.';
+        }
+      })
+      .catch(error => {
+        console.error('Error checking payment status:', error);
+        statusText.textContent = 'Error checking payment status. Please refresh.';
+      });
+  }
+  
+  // Check payment status immediately and then every 3 seconds
+  checkPaymentStatus();
+  setInterval(checkPaymentStatus, 3000);
+</script>

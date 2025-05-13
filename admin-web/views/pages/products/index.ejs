@@ -1,0 +1,140 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h2">Products</h1>
+  <a href="/products/create" class="btn btn-primary">
+    <i class="fas fa-plus-circle me-2"></i>
+    Add New Product
+  </a>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs" id="productTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-products" type="button" role="tab" aria-controls="all-products" aria-selected="true">All Products</button>
+      </li>
+      <% categories.forEach((category, index) => { %>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="<%= category.toLowerCase() %>-tab" data-bs-toggle="tab" data-bs-target="#<%= category.toLowerCase() %>-products" type="button" role="tab" aria-controls="<%= category.toLowerCase() %>-products" aria-selected="false"><%= category %></button>
+        </li>
+      <% }); %>
+    </ul>
+  </div>
+  <div class="card-body">
+    <div class="tab-content" id="productTabsContent">
+      <div class="tab-pane fade show active" id="all-products" role="tabpanel" aria-labelledby="all-tab">
+        <% if (products.length > 0) { %>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Name</th>
+                  <th>Price</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% products.forEach(product => { %>
+                  <tr>
+                    <td>
+                      <% if (product.image_url) { %>
+                        <img src="<%= product.image_url %>" alt="<%= product.name %>" style="width: 50px; height: 50px; object-fit: cover;">
+                      <% } else { %>
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                          <i class="fas fa-box text-muted"></i>
+                        </div>
+                      <% } %>
+                    </td>
+                    <td><%= product.name %></td>
+                    <td>$<%= Number(product.price).toFixed(2) %></td>
+                    <td><%= product.category || 'No Category' %></td>
+                    <td>
+                      <span class="badge bg-<%= product.available ? 'success' : 'danger' %>">
+                        <%= product.available ? 'Available' : 'Unavailable' %>
+                      </span>
+                    </td>
+                    <td>
+                      <div class="btn-group">
+                        <a href="/products/edit/<%= product.id %>" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form action="/products/delete/<%= product.id %>?_method=DELETE" method="POST" class="d-inline">
+                          <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this product?')">Delete</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <div class="text-center py-5">
+            <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+            <h3>No Products Found</h3>
+            <p class="text-muted">There are no products to display.</p>
+            <a href="/products/create" class="btn btn-primary">Add New Product</a>
+          </div>
+        <% } %>
+      </div>
+      
+      <% categories.forEach(category => { %>
+        <div class="tab-pane fade" id="<%= category.toLowerCase() %>-products" role="tabpanel" aria-labelledby="<%= category.toLowerCase() %>-tab">
+          <% const categoryProducts = products.filter(p => p.category === category); %>
+          <% if (categoryProducts.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% categoryProducts.forEach(product => { %>
+                    <tr>
+                      <td>
+                        <% if (product.image_url) { %>
+                          <img src="<%= product.image_url %>" alt="<%= product.name %>" style="width: 50px; height: 50px; object-fit: cover;">
+                        <% } else { %>
+                          <div class="bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="fas fa-box text-muted"></i>
+                          </div>
+                        <% } %>
+                      </td>
+                      <td><%= product.name %></td>
+                      <td>$<%= Number(product.price).toFixed(2) %></td>
+                      <td>
+                        <span class="badge bg-<%= product.available ? 'success' : 'danger' %>">
+                          <%= product.available ? 'Available' : 'Unavailable' %>
+                        </span>
+                      </td>
+                      <td>
+                        <div class="btn-group">
+                          <a href="/products/edit/<%= product.id %>" class="btn btn-sm btn-outline-primary">Edit</a>
+                          <form action="/products/delete/<%= product.id %>?_method=DELETE" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this product?')">Delete</button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="text-center py-5">
+              <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+              <h3>No Products in <%= category %></h3>
+              <p class="text-muted">There are no products in this category.</p>
+              <a href="/products/create" class="btn btn-primary">Add New Product</a>
+            </div>
+          <% } %>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+</div>

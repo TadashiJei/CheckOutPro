@@ -1,0 +1,149 @@
+<%- include('../../partials/header') %>
+<%- include('../../partials/sidebar') %>
+
+<div class="content-wrapper">
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0"><%= title %></h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+            <li class="breadcrumb-item"><a href="/management/employees">Employees</a></li>
+            <li class="breadcrumb-item"><a href="/management/inventory-assignments">Inventory Assignments</a></li>
+            <li class="breadcrumb-item active"><%= isEdit ? 'Edit' : 'Create' %> Assignment</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="content">
+    <div class="container-fluid">
+      <% if (messages.error) { %>
+        <div class="alert alert-danger alert-dismissible">
+          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+          <h5><i class="icon fas fa-ban"></i> Error!</h5>
+          <%= messages.error %>
+        </div>
+      <% } %>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title"><%= isEdit ? 'Edit' : 'Create' %> Inventory Assignment</h3>
+            </div>
+            <form method="POST" action="<%= isEdit ? `/management/inventory-assignments/${assignment.id}/edit` : '/management/inventory-assignments/create' %>">
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="employee_id">Employee</label>
+                  <select id="employee_id" name="employee_id" class="form-control select2" required>
+                    <option value="">Select Employee</option>
+                    <% employees.forEach(function(employee) { %>
+                      <option value="<%= employee.id %>" <%= (assignment.employee_id == employee.id) ? 'selected' : '' %>>
+                        <%= employee.first_name %> <%= employee.last_name %> (<%= employee.position || 'Employee' %>)
+                      </option>
+                    <% }); %>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label for="responsibility_type">Responsibility Type</label>
+                  <select id="responsibility_type" name="responsibility_type" class="form-control" required>
+                    <option value="">Select Responsibility Type</option>
+                    <option value="primary" <%= (assignment.responsibility_type == 'primary') ? 'selected' : '' %>>Primary Manager</option>
+                    <option value="secondary" <%= (assignment.responsibility_type == 'secondary') ? 'selected' : '' %>>Secondary Manager</option>
+                    <option value="stocktaking" <%= (assignment.responsibility_type == 'stocktaking') ? 'selected' : '' %>>Stocktaking</option>
+                    <option value="ordering" <%= (assignment.responsibility_type == 'ordering') ? 'selected' : '' %>>Ordering</option>
+                    <option value="maintenance" <%= (assignment.responsibility_type == 'maintenance') ? 'selected' : '' %>>Maintenance</option>
+                  </select>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label for="category_id">Product Category</label>
+                    <select id="category_id" name="category_id" class="form-control select2">
+                      <option value="">Select Category (Optional)</option>
+                      <% categories.forEach(function(category) { %>
+                        <option value="<%= category.id %>" <%= (assignment.category_id == category.id) ? 'selected' : '' %>>
+                          <%= category.name %>
+                        </option>
+                      <% }); %>
+                    </select>
+                    <small class="form-text text-muted">Assign responsibility for an entire product category</small>
+                  </div>
+                  
+                  <div class="form-group col-md-6">
+                    <label for="section">Storage Section</label>
+                    <input type="text" class="form-control" id="section" name="section" placeholder="e.g., Aisle A, Shelf 3" value="<%= assignment.section || '' %>">
+                    <small class="form-text text-muted">Assign responsibility for a specific storage location</small>
+                  </div>
+                </div>
+                
+                <div class="alert alert-info">
+                  <i class="icon fas fa-info-circle"></i> You must specify either a Product Category or a Storage Section (or both).
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label for="start_date">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" required value="<%= assignment.start_date ? new Date(assignment.start_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0] %>">
+                  </div>
+                  
+                  <div class="form-group col-md-6">
+                    <label for="end_date">End Date (Optional)</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" value="<%= assignment.end_date ? new Date(assignment.end_date).toISOString().split('T')[0] : '' %>">
+                    <small class="form-text text-muted">Leave blank for ongoing assignments</small>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="description">Description</label>
+                  <textarea class="form-control" id="description" name="description" rows="3" placeholder="Enter detailed description of responsibilities"><%= assignment.description || '' %></textarea>
+                </div>
+                
+                <% if (isEdit) { %>
+                  <div class="form-group">
+                    <div class="custom-control custom-switch">
+                      <input type="checkbox" class="custom-control-input" id="active" name="active" value="1" <%= assignment.active ? 'checked' : '' %>>
+                      <label class="custom-control-label" for="active">Active</label>
+                    </div>
+                  </div>
+                <% } %>
+              </div>
+              
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary"><%= isEdit ? 'Update' : 'Create' %> Assignment</button>
+                <a href="/management/inventory-assignments" class="btn btn-default float-right">Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<%- include('../../partials/footer') %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2
+    $('.select2').select2();
+    
+    // Form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+      const categoryId = document.getElementById('category_id').value;
+      const section = document.getElementById('section').value;
+      
+      if (!categoryId && !section) {
+        event.preventDefault();
+        alert('You must specify either a Product Category or a Storage Section (or both).');
+      }
+    });
+  });
+</script>

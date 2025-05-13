@@ -1,0 +1,143 @@
+<!-- Role Form Page -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800"><%= isEdit ? 'Edit' : 'Create' %> Role</h1>
+    <a href="/management/roles" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+      <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Roles
+    </a>
+  </div>
+
+  <%- include('../../../partials/messages') %>
+
+  <!-- Role Form -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary"><%= isEdit ? 'Edit' : 'Create' %> Role</h6>
+    </div>
+    <div class="card-body">
+      <form action="<%= isEdit ? `/management/roles/${role.id}/edit` : '/management/roles/create' %>" method="POST">
+        <div class="form-group">
+          <label for="name">Role Name</label>
+          <input type="text" class="form-control" id="name" name="name" value="<%= role.name || '' %>" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea class="form-control" id="description" name="description" rows="3"><%= role.description || '' %></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Permissions</label>
+          <div class="card">
+            <div class="card-body">
+              <% 
+                const permissionGroups = [
+                  { id: 'dashboard', name: 'Dashboard', options: ['view', 'manage'] },
+                  { id: 'sales', name: 'Sales', options: ['view', 'create', 'update', 'delete'] },
+                  { id: 'inventory', name: 'Inventory', options: ['view', 'create', 'update', 'delete'] },
+                  { id: 'products', name: 'Products', options: ['view', 'create', 'update', 'delete'] },
+                  { id: 'customers', name: 'Customers', options: ['view', 'create', 'update', 'delete'] },
+                  { id: 'employees', name: 'Employees', options: ['view', 'create', 'update', 'delete'] },
+                  { id: 'reports', name: 'Reports', options: ['view', 'create', 'export'] },
+                  { id: 'settings', name: 'Settings', options: ['view', 'update'] }
+                ];
+                
+                // Parse existing permissions
+                let permissions = {};
+                if (role.permissions) {
+                  permissions = typeof role.permissions === 'string' ? JSON.parse(role.permissions) : role.permissions;
+                }
+              %>
+              
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="all" name="permissions[all]" value="true" 
+                  <%= permissions.all ? 'checked' : '' %> onchange="toggleAllPermissions(this.checked)">
+                <label class="form-check-label font-weight-bold" for="all">
+                  All Permissions (Administrator)
+                </label>
+              </div>
+              
+              <div class="row" id="permissionGroups">
+                <% permissionGroups.forEach(group => { %>
+                  <div class="col-md-6 mb-3">
+                    <div class="card">
+                      <div class="card-header">
+                        <div class="form-check">
+                          <input class="form-check-input group-checkbox" type="checkbox" 
+                            id="<%= group.id %>" 
+                            name="permissions[<%= group.id %>]" 
+                            value="true" 
+                            <%= permissions[group.id] === true ? 'checked' : '' %>
+                            onchange="toggleGroupPermissions('<%= group.id %>', this.checked)">
+                          <label class="form-check-label font-weight-bold" for="<%= group.id %>">
+                            <%= group.name %>
+                          </label>
+                        </div>
+                      </div>
+                      <div class="card-body">
+                        <% group.options.forEach(option => { %>
+                          <div class="form-check">
+                            <input class="form-check-input <%= group.id %>-option" type="checkbox" 
+                              id="<%= group.id %>_<%= option %>" 
+                              name="permissions[<%= group.id %>][<%= option %>]" 
+                              value="true" 
+                              <%= permissions[group.id] && permissions[group.id][option] ? 'checked' : '' %>
+                              <%= permissions[group.id] === true ? 'checked disabled' : '' %>>
+                            <label class="form-check-label" for="<%= group.id %>_<%= option %>">
+                              <%= option.charAt(0).toUpperCase() + option.slice(1) %>
+                            </label>
+                          </div>
+                        <% }); %>
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i> <%= isEdit ? 'Update' : 'Create' %> Role
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleAllPermissions(checked) {
+    const permissionGroups = document.getElementById('permissionGroups');
+    const checkboxes = permissionGroups.querySelectorAll('input[type="checkbox"]');
+    
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = checked;
+      checkbox.disabled = checked;
+    });
+  }
+  
+  function toggleGroupPermissions(groupId, checked) {
+    const optionCheckboxes = document.querySelectorAll(`.${groupId}-option`);
+    
+    optionCheckboxes.forEach(checkbox => {
+      checkbox.checked = checked;
+      checkbox.disabled = checked;
+    });
+  }
+  
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    const allPermissions = document.getElementById('all');
+    if (allPermissions.checked) {
+      toggleAllPermissions(true);
+    } else {
+      const groupCheckboxes = document.querySelectorAll('.group-checkbox');
+      groupCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+          toggleGroupPermissions(checkbox.id, true);
+        }
+      });
+    }
+  });
+</script>

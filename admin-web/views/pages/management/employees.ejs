@@ -1,0 +1,92 @@
+<!-- Employee Management Page -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Employee Management</h1>
+    <a href="/management/employees/create" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+      <i class="fas fa-plus fa-sm text-white-50"></i> Add New Employee
+    </a>
+  </div>
+
+  <%- include('../../../partials/messages') %>
+
+  <!-- Employees Table -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">All Employees</h6>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered" id="employeesTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Username</th>
+              <th>Position</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (employees && employees.length > 0) { %>
+              <% employees.forEach(employee => { %>
+                <tr>
+                  <td><%= employee.id %></td>
+                  <td><%= `${employee.first_name} ${employee.last_name}` %></td>
+                  <td><%= employee.username %></td>
+                  <td><%= employee.position || 'N/A' %></td>
+                  <td><span class="badge badge-info"><%= employee.role_name || 'No Role' %></span></td>
+                  <td>
+                    <% if (employee.status === 'active') { %>
+                      <span class="badge badge-success">Active</span>
+                    <% } else if (employee.status === 'inactive') { %>
+                      <span class="badge badge-secondary">Inactive</span>
+                    <% } else if (employee.status === 'suspended') { %>
+                      <span class="badge badge-warning">Suspended</span>
+                    <% } else { %>
+                      <span class="badge badge-secondary"><%= employee.status %></span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div class="btn-group">
+                      <a href="/management/employees/<%= employee.id %>/edit" class="btn btn-info btn-sm">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <a href="/management/employees/<%= employee.id %>/orders" class="btn btn-primary btn-sm">
+                        <i class="fas fa-list"></i>
+                      </a>
+                      <a href="/management/employees/<%= employee.id %>/biometric" class="btn btn-warning btn-sm">
+                        <i class="fas fa-fingerprint"></i>
+                      </a>
+                      <form action="/management/employees/<%= employee.id %>?_method=DELETE" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this employee?');">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" class="text-center">No employees found</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DataTables JavaScript -->
+<script>
+  $(document).ready(function() {
+    $('#employeesTable').DataTable({
+      order: [[1, 'asc']], // Sort by name
+      pageLength: 10
+    });
+  });
+</script>

@@ -1,0 +1,70 @@
+<%- include('../../partials/messages') %>
+
+<div class="row">
+  <div class="col-md-12 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title">Send Notification</h5>
+      </div>
+      <div class="card-body">
+        <form action="/dashboard/notifications/send" method="POST">
+          <div class="mb-3">
+            <label for="email" class="form-label">Recipient Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+          </div>
+          <div class="mb-3">
+            <label for="subject" class="form-label">Subject</label>
+            <input type="text" class="form-control" id="subject" name="subject" required>
+          </div>
+          <div class="mb-3">
+            <label for="message" class="form-label">Message</label>
+            <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Send Notification</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title">Send to All Admins</h5>
+      </div>
+      <div class="card-body">
+        <form action="/dashboard/notifications/send-admin" method="POST">
+          <div class="mb-3">
+            <label for="adminSubject" class="form-label">Subject</label>
+            <input type="text" class="form-control" id="adminSubject" name="subject" required>
+          </div>
+          <div class="mb-3">
+            <label for="adminMessage" class="form-label">Message</label>
+            <textarea class="form-control" id="adminMessage" name="message" rows="5" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-warning">Send to All Admins</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title">Test Email Configuration</h5>
+      </div>
+      <div class="card-body">
+        <form action="/dashboard/notifications/test" method="POST">
+          <div class="mb-3">
+            <label for="testEmail" class="form-label">Email Address</label>
+            <input type="email" class="form-control" id="testEmail" name="email" required>
+          </div>
+          <button type="submit" class="btn btn-secondary">Send Test Email</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

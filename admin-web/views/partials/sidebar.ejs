@@ -1,0 +1,166 @@
+<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+  <div class="sidebar-wrapper">
+    <div class="sidebar-content pt-3">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/' ? 'active' : '' %>" href="/">
+          <i class="fas fa-tachometer-alt me-2"></i>
+          Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/orders' ? 'active' : '' %>" href="/orders">
+          <i class="fas fa-shopping-cart me-2"></i>
+          Orders
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/products' ? 'active' : '' %>" href="/products">
+          <i class="fas fa-box me-2"></i>
+          Products
+        </a>
+      </li>
+      <% if (user && user.role === 'admin') { %>
+        <li class="nav-item">
+          <a class="nav-link <%= path === '/users' ? 'active' : '' %>" href="/users">
+            <i class="fas fa-users me-2"></i>
+            Users
+          </a>
+        </li>
+      <% } %>
+    </ul>
+    
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+      <span>Sales Management</span>
+    </h6>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/sales/orders' ? 'active' : ''  %>" href="/sales/orders">
+          <i class="fas fa-file-invoice-dollar me-2"></i>
+          Sales Orders
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/sales/all' ? 'active' : ''  %>" href="/sales/all">
+          <i class="fas fa-chart-line me-2"></i>
+          All Sales
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/pos/list' ? 'active' : ''  %>" href="/pos/list">
+          <i class="fas fa-cash-register me-2"></i>
+          List POS
+        </a>
+      </li>
+    </ul>
+
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+      <span>Order Management</span>
+    </h6>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/drafts' ? 'active' : ''  %>" href="/drafts">
+          <i class="fas fa-edit me-2"></i>
+          Draft Orders
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/quotations' ? 'active' : ''  %>" href="/quotations">
+          <i class="fas fa-quote-right me-2"></i>
+          Quotations
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/returns' ? 'active' : ''  %>" href="/returns">
+          <i class="fas fa-undo-alt me-2"></i>
+          Returns
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/shipments' ? 'active' : ''  %>" href="/shipments">
+          <i class="fas fa-truck me-2"></i>
+          Shipments
+        </a>
+      </li>
+    </ul>
+
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+      <span>Inventory Management</span>
+    </h6>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/inventory' ? 'active' : ''  %>" href="/inventory">
+          <i class="fas fa-warehouse me-2"></i>
+          Stock Levels
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/inventory/alerts' ? 'active' : ''  %>" href="/inventory/alerts">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Low Stock Alerts
+        </a>
+      </li>
+    </ul>
+
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+      <span>Customer Management</span>
+    </h6>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/customers' ? 'active' : ''  %>" href="/customers">
+          <i class="fas fa-user-friends me-2"></i>
+          Customers
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/loyalty' ? 'active' : ''  %>" href="/loyalty">
+          <i class="fas fa-award me-2"></i>
+          Loyalty Program
+        </a>
+      </li>
+    </ul>
+
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+      <span>Reports</span>
+    </h6>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/reports/sales' ? 'active' : ''  %>" href="/reports/sales">
+          <i class="fas fa-chart-bar me-2"></i>
+          Sales Reports
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= path === '/reports/products' ? 'active' : ''  %>" href="/reports/products">
+          <i class="fas fa-chart-pie me-2"></i>
+          Product Analytics
+        </a>
+      </li>
+    </ul>
+
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+      <span>Quick Actions</span>
+    </h6>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item">
+        <a class="nav-link" href="/products/create">
+          <i class="fas fa-plus-circle me-2"></i>
+          Add Product
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/drafts/create">
+          <i class="fas fa-file-alt me-2"></i>
+          New Draft Order
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/quotations/create">
+          <i class="fas fa-file-invoice me-2"></i>
+          New Quotation
+        </a>
+      </li>
+    </ul>
+    </div>
+  </div>
+</nav>

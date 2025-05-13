@@ -1,0 +1,360 @@
+<!-- Returns Management Page -->
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Returns Management</h1>
+    <a href="/returns/new" class="btn btn-primary">
+      <i class="fas fa-plus-circle me-2"></i> Process New Return
+    </a>
+  </div>
+
+  <% if (locals.flashMessages && flashMessages.success) { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <%= flashMessages.success %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% } %>
+  
+  <% if (locals.flashMessages && flashMessages.error) { %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <%= flashMessages.error %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% } %>
+
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+      <h6 class="m-0 font-weight-bold text-primary">All Returns</h6>
+      <div class="d-flex">
+        <div class="input-group me-2" style="width: 200px;">
+          <select class="form-select" id="statusFilter">
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="completed">Completed</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="input-group" style="width: 200px;">
+          <input type="text" id="returnSearch" class="form-control" placeholder="Search...">
+          <span class="input-group-text"><i class="fas fa-search"></i></span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered" id="returnsTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Return #</th>
+              <th>Date</th>
+              <th>Order #</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (returns && returns.length > 0) { %>
+              <% returns.forEach(returnItem => { %>
+                <tr data-status="<%= returnItem.status.toLowerCase() %>">
+                  <td><%= returnItem.return_number %></td>
+                  <td><%= new Date(returnItem.created_at).toLocaleDateString() %></td>
+                  <td>
+                    <a href="/orders/<%= returnItem.order_id %>">
+                      <%= returnItem.order_reference || returnItem.order_id %>
+                    </a>
+                  </td>
+                  <td>
+                    <% if (returnItem.customer_id) { %>
+                      <a href="/customers/<%= returnItem.customer_id %>">
+                        <%= returnItem.customer_name %>
+                      </a>
+                    <% } else { %>
+                      <span class="text-muted">Walk-in Customer</span>
+                    <% } %>
+                  </td>
+                  <td><%= returnItem.item_count %> items</td>
+                  <td>u20b1<%= parseFloat(returnItem.total_amount).toFixed(2) %></td>
+                  <td>
+                    <% if (returnItem.status === 'pending') { %>
+                      <span class="badge bg-warning text-dark">Pending</span>
+                    <% } else if (returnItem.status === 'approved') { %>
+                      <span class="badge bg-info">Approved</span>
+                    <% } else if (returnItem.status === 'completed') { %>
+                      <span class="badge bg-success">Completed</span>
+                    <% } else if (returnItem.status === 'rejected') { %>
+                      <span class="badge bg-danger">Rejected</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div class="btn-group">
+                      <a href="/returns/<%= returnItem.id %>" class="btn btn-sm btn-info">
+                        <i class="fas fa-eye"></i>
+                      </a>
+                      <% if (returnItem.status === 'pending') { %>
+                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveReturnModal" 
+                          data-return-id="<%= returnItem.id %>"
+                          data-return-number="<%= returnItem.return_number %>">
+                          <i class="fas fa-check"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectReturnModal" 
+                          data-return-id="<%= returnItem.id %>"
+                          data-return-number="<%= returnItem.return_number %>">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      <% } else if (returnItem.status === 'approved') { %>
+                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#completeReturnModal" 
+                          data-return-id="<%= returnItem.id %>"
+                          data-return-number="<%= returnItem.return_number %>">
+                          <i class="fas fa-check-double"></i>
+                        </button>
+                      <% } %>
+                      <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteReturnModal" 
+                        data-return-id="<%= returnItem.id %>"
+                        data-return-number="<%= returnItem.return_number %>">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="8" class="text-center">No returns found</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Approve Return Modal -->
+<div class="modal fade" id="approveReturnModal" tabindex="-1" aria-labelledby="approveReturnModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="approveReturnModalLabel">Approve Return</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="approveReturnForm" action="" method="POST">
+        <div class="modal-body">
+          <p>Are you sure you want to approve this return?</p>
+          <p class="fw-bold" id="approveReturnNumber"></p>
+          <p>This will mark the return as approved and allow the items to be processed for refund or exchange.</p>
+          <div class="mb-3">
+            <label for="approvalNotes" class="form-label">Notes (Optional)</label>
+            <textarea class="form-control" id="approvalNotes" name="notes" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Approve Return</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Reject Return Modal -->
+<div class="modal fade" id="rejectReturnModal" tabindex="-1" aria-labelledby="rejectReturnModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="rejectReturnModalLabel">Reject Return</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="rejectReturnForm" action="" method="POST">
+        <div class="modal-body">
+          <p>Are you sure you want to reject this return?</p>
+          <p class="fw-bold" id="rejectReturnNumber"></p>
+          <div class="mb-3">
+            <label for="rejectionReason" class="form-label">Reason for Rejection</label>
+            <textarea class="form-control" id="rejectionReason" name="reason" rows="3" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Reject Return</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Complete Return Modal -->
+<div class="modal fade" id="completeReturnModal" tabindex="-1" aria-labelledby="completeReturnModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="completeReturnModalLabel">Complete Return</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="completeReturnForm" action="" method="POST">
+        <div class="modal-body">
+          <p>Are you sure you want to mark this return as completed?</p>
+          <p class="fw-bold" id="completeReturnNumber"></p>
+          <p>This will finalize the return process and update inventory if applicable.</p>
+          <div class="mb-3">
+            <label for="refundMethod" class="form-label">Refund Method</label>
+            <select class="form-select" id="refundMethod" name="refundMethod" required>
+              <option value="">Select refund method...</option>
+              <option value="cash">Cash</option>
+              <option value="credit_card">Credit Card</option>
+              <option value="store_credit">Store Credit</option>
+              <option value="exchange">Exchange Only (No Refund)</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="completionNotes" class="form-label">Notes (Optional)</label>
+            <textarea class="form-control" id="completionNotes" name="notes" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Complete Return</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Return Modal -->
+<div class="modal fade" id="deleteReturnModal" tabindex="-1" aria-labelledby="deleteReturnModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteReturnModalLabel">Delete Return</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="deleteReturnForm" action="" method="POST">
+        <div class="modal-body">
+          <p>Are you sure you want to delete this return?</p>
+          <p class="fw-bold" id="deleteReturnNumber"></p>
+          <p class="text-danger">This action cannot be undone. All information related to this return will be permanently removed.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Delete Return</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Status filter functionality
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+      statusFilter.addEventListener('change', function() {
+        const selectedStatus = this.value.toLowerCase();
+        const table = document.getElementById('returnsTable');
+        const rows = table.getElementsByTagName('tr');
+        
+        for (let i = 1; i < rows.length; i++) { // Start from 1 to skip header
+          if (rows[i].cells.length <= 1) continue; // Skip "No returns found" row
+          
+          const rowStatus = rows[i].getAttribute('data-status');
+          
+          if (selectedStatus === 'all' || rowStatus === selectedStatus) {
+            rows[i].style.display = '';
+          } else {
+            rows[i].style.display = 'none';
+          }
+        }
+      });
+    }
+    
+    // Search functionality
+    const returnSearch = document.getElementById('returnSearch');
+    if (returnSearch) {
+      returnSearch.addEventListener('keyup', function() {
+        const searchValue = this.value.toLowerCase();
+        const table = document.getElementById('returnsTable');
+        const rows = table.getElementsByTagName('tr');
+        
+        for (let i = 1; i < rows.length; i++) { // Start from 1 to skip header
+          if (rows[i].cells.length <= 1) continue; // Skip "No returns found" row
+          
+          const returnNumber = rows[i].cells[0].textContent.toLowerCase();
+          const orderNumber = rows[i].cells[2].textContent.toLowerCase();
+          const customerName = rows[i].cells[3].textContent.toLowerCase();
+          
+          if (returnNumber.includes(searchValue) || orderNumber.includes(searchValue) || customerName.includes(searchValue)) {
+            rows[i].style.display = '';
+          } else {
+            rows[i].style.display = 'none';
+          }
+        }
+      });
+    }
+    
+    // Approve Return Modal
+    const approveReturnModal = document.getElementById('approveReturnModal');
+    if (approveReturnModal) {
+      approveReturnModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const returnId = button.getAttribute('data-return-id');
+        const returnNumber = button.getAttribute('data-return-number');
+        
+        // Update the modal content
+        document.getElementById('approveReturnNumber').textContent = `Return #${returnNumber}`;
+        
+        // Set the form action
+        document.getElementById('approveReturnForm').action = `/returns/${returnId}/approve`;
+      });
+    }
+    
+    // Reject Return Modal
+    const rejectReturnModal = document.getElementById('rejectReturnModal');
+    if (rejectReturnModal) {
+      rejectReturnModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const returnId = button.getAttribute('data-return-id');
+        const returnNumber = button.getAttribute('data-return-number');
+        
+        // Update the modal content
+        document.getElementById('rejectReturnNumber').textContent = `Return #${returnNumber}`;
+        
+        // Set the form action
+        document.getElementById('rejectReturnForm').action = `/returns/${returnId}/reject`;
+      });
+    }
+    
+    // Complete Return Modal
+    const completeReturnModal = document.getElementById('completeReturnModal');
+    if (completeReturnModal) {
+      completeReturnModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const returnId = button.getAttribute('data-return-id');
+        const returnNumber = button.getAttribute('data-return-number');
+        
+        // Update the modal content
+        document.getElementById('completeReturnNumber').textContent = `Return #${returnNumber}`;
+        
+        // Set the form action
+        document.getElementById('completeReturnForm').action = `/returns/${returnId}/complete`;
+      });
+    }
+    
+    // Delete Return Modal
+    const deleteReturnModal = document.getElementById('deleteReturnModal');
+    if (deleteReturnModal) {
+      deleteReturnModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const returnId = button.getAttribute('data-return-id');
+        const returnNumber = button.getAttribute('data-return-number');
+        
+        // Update the modal content
+        document.getElementById('deleteReturnNumber').textContent = `Return #${returnNumber}`;
+        
+        // Set the form action
+        document.getElementById('deleteReturnForm').action = `/returns/${returnId}/delete`;
+      });
+    }
+  });
+</script>

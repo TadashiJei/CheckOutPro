@@ -1,0 +1,164 @@
+<!-- Employee Form Page -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800"><%= isEdit ? 'Edit' : 'Create' %> Employee</h1>
+    <a href="/management/employees" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+      <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Employees
+    </a>
+  </div>
+
+  <%- include('../../../partials/messages') %>
+
+  <!-- Employee Form -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary"><%= isEdit ? 'Edit' : 'Create' %> Employee</h6>
+    </div>
+    <div class="card-body">
+      <form action="<%= isEdit ? `/management/employees/${employee.id}/edit` : '/management/employees/create' %>" method="POST">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="first_name">First Name</label>
+              <input type="text" class="form-control" id="first_name" name="first_name" value="<%= employee.first_name || '' %>" required>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="last_name">Last Name</label>
+              <input type="text" class="form-control" id="last_name" name="last_name" value="<%= employee.last_name || '' %>" required>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" class="form-control" id="username" name="username" value="<%= employee.username || '' %>" <%= isEdit ? 'readonly' : 'required' %>>
+              <% if (isEdit) { %>
+                <small class="form-text text-muted">Username cannot be changed</small>
+              <% } %>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" class="form-control" id="password" name="password" <%= isEdit ? '' : 'required' %>>
+              <% if (isEdit) { %>
+                <small class="form-text text-muted">Leave blank to keep current password</small>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" class="form-control" id="email" name="email" value="<%= employee.email || '' %>">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="phone">Phone</label>
+              <input type="text" class="form-control" id="phone" name="phone" value="<%= employee.phone || '' %>">
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="role_id">Role</label>
+              <select class="form-control" id="role_id" name="role_id">
+                <option value="">Select Role</option>
+                <% if (roles && roles.length > 0) { %>
+                  <% roles.forEach(role => { %>
+                    <option value="<%= role.id %>" <%= employee.role_id == role.id ? 'selected' : '' %>>
+                      <%= role.name %>
+                    </option>
+                  <% }); %>
+                <% } %>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="status">Status</label>
+              <select class="form-control" id="status" name="status">
+                <option value="active" <%= employee.status === 'active' || !employee.status ? 'selected' : '' %>>Active</option>
+                <option value="inactive" <%= employee.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                <option value="suspended" <%= employee.status === 'suspended' ? 'selected' : '' %>>Suspended</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="position">Position</label>
+          <select class="form-control" id="position" name="position" onchange="toggleCustomPosition()">
+            <option value="">Select Position</option>
+            <% if (positions && positions.length > 0) { %>
+              <% positions.forEach(pos => { %>
+                <option value="<%= pos.id %>" <%= employee.position === pos.id ? 'selected' : '' %>>
+                  <%= pos.name %>
+                </option>
+              <% }); %>
+            <% } %>
+          </select>
+        </div>
+        
+        <div id="customPositionContainer" class="form-group" style="display: <%= employee.position === 'custom' ? 'block' : 'none' %>;">
+          <label for="custom_position">Custom Position Name</label>
+          <input type="text" class="form-control" id="custom_position" name="position_data[custom_name]" 
+            value="<%= employee.position_data && employee.position_data.custom_name ? employee.position_data.custom_name : '' %>">
+        </div>
+        
+        <div class="form-group">
+          <label for="position_notes">Position Notes</label>
+          <textarea class="form-control" id="position_notes" name="position_data[notes]" rows="3"><%= employee.position_data && employee.position_data.notes ? employee.position_data.notes : '' %></textarea>
+        </div>
+        
+        <% if (isEdit && employee.biometric_id) { %>
+          <div class="form-group">
+            <label>Biometric Status</label>
+            <div class="alert alert-info">
+              <i class="fas fa-fingerprint mr-2"></i>
+              Biometric data is enrolled (ID: <%= employee.biometric_id %>)
+            </div>
+          </div>
+        <% } %>
+        
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i> <%= isEdit ? 'Update' : 'Create' %> Employee
+        </button>
+        
+        <% if (isEdit) { %>
+          <a href="/management/employees/<%= employee.id %>/biometric" class="btn btn-warning">
+            <i class="fas fa-fingerprint"></i> <%= employee.biometric_id ? 'Update' : 'Enroll' %> Biometric
+          </a>
+        <% } %>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleCustomPosition() {
+    const positionSelect = document.getElementById('position');
+    const customPositionContainer = document.getElementById('customPositionContainer');
+    
+    if (positionSelect.value === 'custom') {
+      customPositionContainer.style.display = 'block';
+    } else {
+      customPositionContainer.style.display = 'none';
+    }
+  }
+  
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    toggleCustomPosition();
+  });
+</script>

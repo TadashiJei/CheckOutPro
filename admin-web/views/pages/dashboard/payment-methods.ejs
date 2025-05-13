@@ -1,0 +1,240 @@
+<%- include('../../partials/messages') %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h2">Select Payment Method</h1>
+  <a href="/orders/<%= order.id %>" class="btn btn-outline-primary">
+    <i class="fas fa-arrow-left me-2"></i>
+    Back to Order
+  </a>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Payment Methods</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <!-- GCash Payment -->
+          <div class="col-md-6 mb-4">
+            <div class="card h-100">
+              <div class="card-body text-center">
+                <img src="https://www.xendit.co/wp-content/uploads/2020/12/gcash-logo.png" alt="GCash" class="img-fluid mb-3" style="max-height: 60px;">
+                <h5>Pay with GCash</h5>
+                <p class="text-muted">Pay using your GCash e-wallet</p>
+                <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#gcashModal">
+                  <i class="fas fa-wallet me-2"></i>
+                  Pay with GCash
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Maya Payment -->
+          <div class="col-md-6 mb-4">
+            <div class="card h-100">
+              <div class="card-body text-center">
+                <img src="https://www.xendit.co/wp-content/uploads/2021/04/paymaya-logo.png" alt="Maya" class="img-fluid mb-3" style="max-height: 60px;">
+                <h5>Pay with Maya</h5>
+                <p class="text-muted">Pay using your Maya e-wallet</p>
+                <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#mayaModal">
+                  <i class="fas fa-wallet me-2"></i>
+                  Pay with Maya
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- QR Code Payment -->
+          <div class="col-md-6 mb-4">
+            <div class="card h-100">
+              <div class="card-body text-center">
+                <i class="fas fa-qrcode fa-3x mb-3 text-primary"></i>
+                <h5>QR Code Payment</h5>
+                <p class="text-muted">Scan QR code to pay</p>
+                <form action="/payments/<%= order.id %>/qr" method="POST">
+                  <button type="submit" class="btn btn-info w-100">
+                    <i class="fas fa-qrcode me-2"></i>
+                    Generate QR Code
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Multiple Payment Options -->
+          <div class="col-md-6 mb-4">
+            <div class="card h-100">
+              <div class="card-body text-center">
+                <i class="fas fa-credit-card fa-3x mb-3 text-secondary"></i>
+                <h5>Multiple Payment Options</h5>
+                <p class="text-muted">Credit Card, Bank Transfer, and more</p>
+                <button type="button" class="btn btn-secondary w-100" data-bs-toggle="modal" data-bs-target="#multiPaymentModal">
+                  <i class="fas fa-credit-card me-2"></i>
+                  Choose Payment Option
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Cash Payment -->
+          <div class="col-md-6 mb-4">
+            <div class="card h-100">
+              <div class="card-body text-center">
+                <i class="fas fa-money-bill-wave fa-3x mb-3 text-success"></i>
+                <h5>Cash Payment</h5>
+                <p class="text-muted">Pay with cash at checkout</p>
+                <form action="/orders/<%= order.id %>/status" method="POST">
+                  <input type="hidden" name="status" value="completed">
+                  <input type="hidden" name="payment_method" value="cash">
+                  <input type="hidden" name="payment_status" value="completed">
+                  <button type="submit" class="btn btn-success w-100">
+                    <i class="fas fa-money-bill-wave me-2"></i>
+                    Mark as Paid (Cash)
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Order Summary</h5>
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Order ID:</span>
+            <span class="fw-bold">#<%= order.id %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Type:</span>
+            <span class="badge bg-<%= order.type === 'dine-in' ? 'primary' : 'success' %>"><%= order.type %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Status:</span>
+            <span class="badge bg-<%= order.status === 'pending' ? 'warning' : 'success' %>"><%= order.status %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Date:</span>
+            <span><%= new Date(order.created_at).toLocaleString() %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Total Items:</span>
+            <span><%= order.items.length %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Total Amount:</span>
+            <span class="fw-bold">$<%= Number(order.total).toFixed(2) %></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GCash Modal -->
+<div class="modal fade" id="gcashModal" tabindex="-1" aria-labelledby="gcashModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="gcashModalLabel">Pay with GCash</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/payments/<%= order.id %>/gcash" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="gcash_phone" class="form-label">Phone Number</label>
+            <input type="tel" class="form-control" id="gcash_phone" name="phone" placeholder="09XX XXX XXXX" required>
+            <div class="form-text">Enter your GCash-registered phone number</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Proceed to GCash</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Maya Modal -->
+<div class="modal fade" id="mayaModal" tabindex="-1" aria-labelledby="mayaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="mayaModalLabel">Pay with Maya</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/payments/<%= order.id %>/maya" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="maya_phone" class="form-label">Phone Number</label>
+            <input type="tel" class="form-control" id="maya_phone" name="phone" placeholder="09XX XXX XXXX" required>
+            <div class="form-text">Enter your Maya-registered phone number</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Proceed to Maya</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Multiple Payment Options Modal -->
+<div class="modal fade" id="multiPaymentModal" tabindex="-1" aria-labelledby="multiPaymentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="multiPaymentModalLabel">Multiple Payment Options</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/payments/<%= order.id %>/multi" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="customerName" class="form-label">Your Name</label>
+            <input type="text" class="form-control" id="customerName" name="customerName" required>
+          </div>
+          <div class="mb-3">
+            <label for="customerEmail" class="form-label">Email Address</label>
+            <input type="email" class="form-control" id="customerEmail" name="customerEmail" required>
+            <div class="form-text">Payment instructions will be sent to this email</div>
+          </div>
+          <p class="text-muted">You'll be redirected to a secure payment page where you can choose from multiple payment options including credit/debit cards, bank transfers, and more.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Proceed to Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Automatically check payment status every 5 seconds
+  function checkPaymentStatus() {
+    const orderId = '<%= order.id %>';
+    
+    fetch(`/payments/${orderId}/status`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'completed') {
+          // Redirect to order details page if payment is completed
+          window.location.href = `/orders/${orderId}?payment=success`;
+        }
+      })
+      .catch(error => console.error('Error checking payment status:', error));
+  }
+  
+  // Check payment status every 5 seconds
+  setInterval(checkPaymentStatus, 5000);
+</script>

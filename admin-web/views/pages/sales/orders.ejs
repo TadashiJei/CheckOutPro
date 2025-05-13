@@ -1,0 +1,82 @@
+<!-- Sales Orders Page -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Orders</h1>
+    <a href="/pos" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+      <i class="fas fa-cash-register fa-sm text-white-50"></i> New Order
+    </a>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">All Orders</h6>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered" id="ordersTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Reference</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Total</th>
+              <th>Payment Method</th>
+              <th>Payment Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (orders && orders.length > 0) { %>
+              <% orders.forEach(order => { %>
+                <tr>
+                  <td><%= order.id %></td>
+                  <td><%= order.reference_number || 'N/A' %></td>
+                  <td><%= new Date(order.created_at).toLocaleString() %></td>
+                  <td><%= order.customer_name || 'Walk-in Customer' %></td>
+                  <td>₱<%= Number(order.total).toFixed(2) %></td>
+                  <td><%= order.payment_method || 'Cash' %></td>
+                  <td>
+                    <% if (order.payment_status === 'paid') { %>
+                      <span class="badge badge-success">Paid</span>
+                    <% } else if (order.payment_status === 'pending') { %>
+                      <span class="badge badge-warning">Pending</span>
+                    <% } else if (order.payment_status === 'failed') { %>
+                      <span class="badge badge-danger">Failed</span>
+                    <% } else { %>
+                      <span class="badge badge-secondary">Unknown</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <a href="/sales/orders/<%= order.id %>" class="btn btn-info btn-sm">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="/sales/orders/<%= order.id %>/print" class="btn btn-primary btn-sm">
+                      <i class="fas fa-print"></i>
+                    </a>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="8" class="text-center">No orders found</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DataTables JavaScript -->
+<script>
+  $(document).ready(function() {
+    $('#ordersTable').DataTable({
+      order: [[2, 'desc']], // Sort by date column descending
+      pageLength: 25
+    });
+  });
+</script>

@@ -1,0 +1,124 @@
+<!-- Reports Dashboard Page -->
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Reports Dashboard</h1>
+    <div>
+      <button type="button" class="btn btn-primary" id="printReportBtn">
+        <i class="fas fa-print me-2"></i> Print Report
+      </button>
+      <button type="button" class="btn btn-success" id="exportReportBtn">
+        <i class="fas fa-file-excel me-2"></i> Export to Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Date Range Filter -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Filter Reports</h6>
+    </div>
+    <div class="card-body">
+      <form id="reportFilterForm" action="/reports" method="GET">
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label for="reportType" class="form-label">Report Type</label>
+            <select class="form-select" id="reportType" name="type">
+              <option value="sales" <%= type === 'sales' ? 'selected' : '' %>>Sales Report</option>
+              <option value="inventory" <%= type === 'inventory' ? 'selected' : '' %>>Inventory Report</option>
+              <option value="products" <%= type === 'products' ? 'selected' : '' %>>Product Performance</option>
+              <option value="customers" <%= type === 'customers' ? 'selected' : '' %>>Customer Analysis</option>
+            </select>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="dateRange" class="form-label">Date Range</label>
+            <select class="form-select" id="dateRange" name="range">
+              <option value="today" <%= range === 'today' ? 'selected' : '' %>>Today</option>
+              <option value="yesterday" <%= range === 'yesterday' ? 'selected' : '' %>>Yesterday</option>
+              <option value="last7days" <%= range === 'last7days' ? 'selected' : '' %>>Last 7 Days</option>
+              <option value="last30days" <%= range === 'last30days' ? 'selected' : '' %>>Last 30 Days</option>
+              <option value="thisMonth" <%= range === 'thisMonth' ? 'selected' : '' %>>This Month</option>
+              <option value="lastMonth" <%= range === 'lastMonth' ? 'selected' : '' %>>Last Month</option>
+              <option value="custom" <%= range === 'custom' ? 'selected' : '' %>>Custom Range</option>
+            </select>
+          </div>
+          <div class="col-md-3 mb-3 <%= range === 'custom' ? '' : 'd-none' %>" id="startDateGroup">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" class="form-control" id="startDate" name="startDate" value="<%= startDate || '' %>">
+          </div>
+          <div class="col-md-3 mb-3 <%= range === 'custom' ? '' : 'd-none' %>" id="endDateGroup">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="date" class="form-control" id="endDate" name="endDate" value="<%= endDate || '' %>">
+          </div>
+          <div class="col-md-12 text-end">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-filter me-2"></i> Apply Filters
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Report Content -->
+  <div id="reportContent">
+    <% if (type === 'sales') { %>
+      <%- include('./sales.ejs') %>
+    <% } else if (type === 'inventory') { %>
+      <%- include('./inventory.ejs') %>
+    <% } else if (type === 'products') { %>
+      <%- include('./products.ejs') %>
+    <% } else if (type === 'customers') { %>
+      <%- include('./customers.ejs') %>
+    <% } else { %>
+      <!-- Default to sales report if no type specified -->
+      <%- include('./sales.ejs') %>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle date range selection
+    const dateRange = document.getElementById('dateRange');
+    const startDateGroup = document.getElementById('startDateGroup');
+    const endDateGroup = document.getElementById('endDateGroup');
+    
+    if (dateRange) {
+      dateRange.addEventListener('change', function() {
+        if (this.value === 'custom') {
+          startDateGroup.style.display = '';
+          endDateGroup.style.display = '';
+        } else {
+          startDateGroup.style.display = 'none';
+          endDateGroup.style.display = 'none';
+        }
+      });
+    }
+    
+    // Print report functionality
+    const printReportBtn = document.getElementById('printReportBtn');
+    if (printReportBtn) {
+      printReportBtn.addEventListener('click', function() {
+        window.print();
+      });
+    }
+    
+    // Export to Excel functionality
+    const exportReportBtn = document.getElementById('exportReportBtn');
+    if (exportReportBtn) {
+      exportReportBtn.addEventListener('click', function() {
+        const reportType = document.getElementById('reportType').value;
+        const dateRangeValue = document.getElementById('dateRange').value;
+        let startDateValue = '';
+        let endDateValue = '';
+        
+        if (dateRangeValue === 'custom') {
+          startDateValue = document.getElementById('startDate').value;
+          endDateValue = document.getElementById('endDate').value;
+        }
+        
+        window.location.href = `/reports/export?type=${reportType}&range=${dateRangeValue}&startDate=${startDateValue}&endDate=${endDateValue}`;
+      });
+    }
+  });
+</script>

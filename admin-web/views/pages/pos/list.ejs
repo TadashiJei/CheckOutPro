@@ -1,0 +1,140 @@
+<!-- POS List Page -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">POS Terminals</h1>
+    <a href="/Users/jay/TadashiJei/CheckOutPro/java-pos" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" target="_blank">
+      <i class="fas fa-cash-register fa-sm text-white-50"></i> Open Java POS
+    </a>
+  </div>
+  
+  <!-- Java POS Information -->
+  <div class="alert alert-info mb-4">
+    <h5><i class="fas fa-info-circle mr-2"></i>Java POS System Information</h5>
+    <p>The Point of Sale (POS) system is implemented as a separate Java application located at <code>/Users/jay/TadashiJei/CheckOutPro/java-pos</code>.</p>
+    <p>To use the POS system, please launch the Java application directly from its location or click the 'Open Java POS' button above.</p>
+  </div>
+
+  <!-- POS Terminals Table -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Active POS Terminals</h6>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered" id="posTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Terminal ID</th>
+              <th>Location</th>
+              <th>Cashier</th>
+              <th>Status</th>
+              <th>Last Transaction</th>
+              <th>Today's Sales</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (terminals && terminals.length > 0) { %>
+              <% terminals.forEach(terminal => { %>
+                <tr>
+                  <td><%= terminal.id %></td>
+                  <td><%= terminal.location %></td>
+                  <td><%= terminal.cashier_name %></td>
+                  <td>
+                    <% if (terminal.status === 'active') { %>
+                      <span class="badge badge-success">Active</span>
+                    <% } else if (terminal.status === 'inactive') { %>
+                      <span class="badge badge-secondary">Inactive</span>
+                    <% } else { %>
+                      <span class="badge badge-warning"><%= terminal.status %></span>
+                    <% } %>
+                  </td>
+                  <td><%= terminal.last_transaction ? new Date(terminal.last_transaction).toLocaleString() : 'N/A' %></td>
+                  <td>₱<%= terminal.daily_sales ? Number(terminal.daily_sales).toFixed(2) : '0.00' %></td>
+                  <td>
+                    <a href="/pos/terminal/<%= terminal.id %>" class="btn btn-primary btn-sm">
+                      <i class="fas fa-cash-register"></i> Open
+                    </a>
+                    <a href="/pos/terminal/<%= terminal.id %>/report" class="btn btn-info btn-sm">
+                      <i class="fas fa-chart-bar"></i> Report
+                    </a>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" class="text-center">
+                  <p>No POS terminals found.</p>
+                  <p>You can open a new POS session by clicking the "Open POS" button above.</p>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- POS History Card -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">POS Session History</h6>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered" id="posHistoryTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Session ID</th>
+              <th>Terminal</th>
+              <th>Cashier</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Total Sales</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (sessions && sessions.length > 0) { %>
+              <% sessions.forEach(session => { %>
+                <tr>
+                  <td><%= session.id %></td>
+                  <td><%= session.terminal_id %></td>
+                  <td><%= session.cashier_name %></td>
+                  <td><%= new Date(session.start_time).toLocaleString() %></td>
+                  <td><%= session.end_time ? new Date(session.end_time).toLocaleString() : 'Active' %></td>
+                  <td>₱<%= session.total_sales ? Number(session.total_sales).toFixed(2) : '0.00' %></td>
+                  <td>
+                    <a href="/pos/session/<%= session.id %>/report" class="btn btn-info btn-sm">
+                      <i class="fas fa-file-alt"></i> View Report
+                    </a>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" class="text-center">No session history found</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DataTables JavaScript -->
+<script>
+  $(document).ready(function() {
+    $('#posTable').DataTable({
+      order: [[4, 'desc']], // Sort by last transaction column descending
+      pageLength: 10
+    });
+    
+    $('#posHistoryTable').DataTable({
+      order: [[3, 'desc']], // Sort by start time column descending
+      pageLength: 10
+    });
+  });
+</script>

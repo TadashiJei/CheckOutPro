@@ -1,0 +1,178 @@
+<!-- Order Details Page -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Order #<%= order.id %></h1>
+    <div>
+      <a href="/sales/orders/<%= order.id %>/print" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+        <i class="fas fa-print fa-sm text-white-50"></i> Print Receipt
+      </a>
+    </div>
+  </div>
+
+  <!-- Order Details Card -->
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Order Details</h6>
+          <div>
+            <% if (order.status === 'pending') { %>
+              <form action="/sales/orders/<%= order.id %>/status" method="POST" class="d-inline">
+                <input type="hidden" name="status" value="completed">
+                <button type="submit" class="btn btn-success btn-sm">
+                  <i class="fas fa-check"></i> Complete Order
+                </button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <p><strong>Reference:</strong> <%= order.reference_number || 'N/A' %></p>
+              <p><strong>Date:</strong> <%= new Date(order.created_at).toLocaleString() %></p>
+              <p><strong>Status:</strong> 
+                <% if (order.status === 'completed') { %>
+                  <span class="badge badge-success">Completed</span>
+                <% } else if (order.status === 'pending') { %>
+                  <span class="badge badge-warning">Pending</span>
+                <% } else if (order.status === 'cancelled') { %>
+                  <span class="badge badge-danger">Cancelled</span>
+                <% } else { %>
+                  <span class="badge badge-secondary"><%= order.status %></span>
+                <% } %>
+              </p>
+              <p><strong>Order Type:</strong> <%= order.order_type || 'Regular' %></p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Payment Method:</strong> <%= order.payment_method || 'Cash' %></p>
+              <p><strong>Payment Status:</strong> 
+                <% if (order.payment_status === 'paid') { %>
+                  <span class="badge badge-success">Paid</span>
+                <% } else if (order.payment_status === 'pending') { %>
+                  <span class="badge badge-warning">Pending</span>
+                <% } else if (order.payment_status === 'failed') { %>
+                  <span class="badge badge-danger">Failed</span>
+                <% } else { %>
+                  <span class="badge badge-secondary">Unknown</span>
+                <% } %>
+              </p>
+              <p><strong>Payment Reference:</strong> <%= order.payment_reference || 'N/A' %></p>
+              <% if (order.payment_method && order.payment_method.toLowerCase().includes('xendit')) { %>
+                <p><strong>Payment Provider:</strong> Xendit</p>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Order Items Table -->
+          <div class="table-responsive">
+            <table class="table table-bordered" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (order.items && order.items.length > 0) { %>
+                  <% order.items.forEach(item => { %>
+                    <tr>
+                      <td><%= item.product_name %></td>
+                      <td>₱<%= Number(item.price_at_purchase).toFixed(2) %></td>
+                      <td><%= item.quantity %></td>
+                      <td>₱<%= (Number(item.price_at_purchase) * item.quantity).toFixed(2) %></td>
+                    </tr>
+                  <% }); %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="4" class="text-center">No items found</td>
+                  </tr>
+                <% } %>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="text-right"><strong>Subtotal:</strong></td>
+                  <td>₱<%= order.subtotal ? Number(order.subtotal).toFixed(2) : '0.00' %></td>
+                </tr>
+                <% if (order.discount_amount && order.discount_amount > 0) { %>
+                  <tr>
+                    <td colspan="3" class="text-right"><strong>Discount 
+                      <% if (order.discount_percent && order.discount_percent > 0) { %>
+                        (<%= order.discount_percent %>%)
+                      <% } %>
+                    :</strong></td>
+                    <td>₱<%= Number(order.discount_amount).toFixed(2) %></td>
+                  </tr>
+                <% } %>
+                <tr>
+                  <td colspan="3" class="text-right"><strong>Total:</strong></td>
+                  <td>₱<%= order.total ? Number(order.total).toFixed(2) : '0.00' %></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <!-- Customer Information Card -->
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Customer Information</h6>
+        </div>
+        <div class="card-body">
+          <% if (customer) { %>
+            <p><strong>Name:</strong> <%= customer.name %></p>
+            <p><strong>Email:</strong> <%= customer.email || 'N/A' %></p>
+            <p><strong>Phone:</strong> <%= customer.phone || 'N/A' %></p>
+            <p><strong>Address:</strong> <%= customer.address || 'N/A' %></p>
+            <p><strong>Loyalty Points:</strong> <%= customer.loyalty_points || 0 %></p>
+            <a href="/customers/<%= customer.id %>" class="btn btn-info btn-sm btn-block">
+              <i class="fas fa-user"></i> View Customer Profile
+            </a>
+          <% } else { %>
+            <p>Walk-in Customer</p>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Actions Card -->
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Actions</h6>
+        </div>
+        <div class="card-body">
+          <a href="/sales/orders/<%= order.id %>/print" class="btn btn-primary btn-block mb-2">
+            <i class="fas fa-print"></i> Print Receipt
+          </a>
+          <a href="/sales/orders/<%= order.id %>/email" class="btn btn-info btn-block mb-2">
+            <i class="fas fa-envelope"></i> Email Receipt
+          </a>
+          <% if (order.status !== 'completed') { %>
+            <form action="/sales/orders/<%= order.id %>/status" method="POST">
+              <input type="hidden" name="status" value="completed">
+              <button type="submit" class="btn btn-success btn-block mb-2">
+                <i class="fas fa-check"></i> Mark as Completed
+              </button>
+            </form>
+          <% } %>
+          <% if (order.status !== 'cancelled') { %>
+            <form action="/sales/orders/<%= order.id %>/status" method="POST">
+              <input type="hidden" name="status" value="cancelled">
+              <button type="submit" class="btn btn-danger btn-block mb-2">
+                <i class="fas fa-times"></i> Cancel Order
+              </button>
+            </form>
+          <% } %>
+          <a href="/returns/create/<%= order.id %>" class="btn btn-warning btn-block">
+            <i class="fas fa-undo"></i> Process Return
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,510 @@
+<!-- Sales Report Content -->
+<div class="row">
+  <!-- Sales Overview Cards -->
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Sales</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">u20b1<%= parseFloat(stats.totalSales).toFixed(2) %></div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Orders</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.totalOrders %></div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-info shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Average Order Value</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">u20b1<%= stats.averageOrderValue.toFixed(2) %></div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Net Profit</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">u20b1<%= parseFloat(stats.netProfit).toFixed(2) %></div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-piggy-bank fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sales Charts -->
+<div class="row">
+  <!-- Sales Trend Chart -->
+  <div class="col-xl-8 col-lg-7">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Sales Trend</h6>
+        <div class="dropdown no-arrow">
+          <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+          </a>
+          <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+            <div class="dropdown-header">View Options:</div>
+            <a class="dropdown-item" href="#" data-view="daily">Daily</a>
+            <a class="dropdown-item" href="#" data-view="weekly">Weekly</a>
+            <a class="dropdown-item" href="#" data-view="monthly">Monthly</a>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-area">
+          <canvas id="salesTrendChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Methods Chart -->
+  <div class="col-xl-4 col-lg-5">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Payment Methods</h6>
+      </div>
+      <div class="card-body">
+        <div class="chart-pie pt-4 pb-2">
+          <canvas id="paymentMethodsChart"></canvas>
+        </div>
+        <div class="mt-4 text-center small">
+          <% stats.paymentMethods.forEach((method, index) => { %>
+            <span class="me-2">
+              <i class="fas fa-circle" style="color: <%= getChartColor(index) %>;"></i> <%= method.method %>
+            </span>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sales Details -->
+<div class="row">
+  <!-- Sales by Hour -->
+  <div class="col-xl-6 mb-4">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Sales by Hour</h6>
+      </div>
+      <div class="card-body">
+        <div class="chart-bar">
+          <canvas id="salesByHourChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sales by Day of Week -->
+  <div class="col-xl-6 mb-4">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Sales by Day of Week</h6>
+      </div>
+      <div class="card-body">
+        <div class="chart-bar">
+          <canvas id="salesByDayChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Sales Table -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">Recent Sales</h6>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" id="recentSalesTable" width="100%" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (recentSales && recentSales.length > 0) { %>
+            <% recentSales.forEach(sale => { %>
+              <tr>
+                <td>
+                  <a href="/orders/<%= sale.id %>">
+                    <%= sale.reference_number || sale.id %>
+                  </a>
+                </td>
+                <td><%= new Date(sale.created_at).toLocaleString() %></td>
+                <td>
+                  <% if (sale.customer_id) { %>
+                    <a href="/customers/<%= sale.customer_id %>">
+                      <%= sale.customer_name %>
+                    </a>
+                  <% } else { %>
+                    <span class="text-muted">Walk-in Customer</span>
+                  <% } %>
+                </td>
+                <td><%= sale.item_count %> items</td>
+                <td>u20b1<%= parseFloat(sale.total_amount).toFixed(2) %></td>
+                <td><%= sale.payment_method || 'Cash' %></td>
+                <td>
+                  <% if (sale.status === 'completed') { %>
+                    <span class="badge bg-success">Completed</span>
+                  <% } else if (sale.status === 'cancelled') { %>
+                    <span class="badge bg-danger">Cancelled</span>
+                  <% } else { %>
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="7" class="text-center">No sales data found for the selected period</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Helper function to get chart colors
+  function getChartColor(index) {
+    const colors = [
+      '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', 
+      '#5a5c69', '#6610f2', '#fd7e14', '#20c9a6', '#858796'
+    ];
+    return colors[index % colors.length];
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Sales Trend Chart
+    const salesTrendCtx = document.getElementById('salesTrendChart');
+    if (salesTrendCtx) {
+      const salesTrendChart = new Chart(salesTrendCtx, {
+        type: 'line',
+        data: {
+          labels: <%- JSON.stringify(stats.salesByDate.map(item => item.date)) %>,
+          datasets: [{
+            label: 'Sales',
+            lineTension: 0.3,
+            backgroundColor: 'rgba(78, 115, 223, 0.05)',
+            borderColor: 'rgba(78, 115, 223, 1)',
+            pointRadius: 3,
+            pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+            pointBorderColor: 'rgba(78, 115, 223, 1)',
+            pointHoverRadius: 3,
+            pointHoverBackgroundColor: 'rgba(78, 115, 223, 1)',
+            pointHoverBorderColor: 'rgba(78, 115, 223, 1)',
+            pointHitRadius: 10,
+            pointBorderWidth: 2,
+            data: <%- JSON.stringify(stats.salesByDate.map(item => item.total)) %>,
+          }],
+        },
+        options: {
+          maintainAspectRatio: false,
+          layout: {
+            padding: {
+              left: 10,
+              right: 25,
+              top: 25,
+              bottom: 0
+            }
+          },
+          scales: {
+            x: {
+              time: {
+                unit: 'date'
+              },
+              grid: {
+                display: false,
+                drawBorder: false
+              },
+              ticks: {
+                maxTicksLimit: 7
+              }
+            },
+            y: {
+              ticks: {
+                maxTicksLimit: 5,
+                padding: 10,
+                callback: function(value) {
+                  return '₱' + value.toLocaleString();
+                }
+              },
+              grid: {
+                color: 'rgb(234, 236, 244)',
+                zeroLineColor: 'rgb(234, 236, 244)',
+                drawBorder: false,
+                borderDash: [2],
+                zeroLineBorderDash: [2]
+              }
+            },
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgb(255, 255, 255)',
+              bodyColor: '#858796',
+              titleMarginBottom: 10,
+              titleColor: '#6e707e',
+              titleFontSize: 14,
+              borderColor: '#dddfeb',
+              borderWidth: 1,
+              xPadding: 15,
+              yPadding: 15,
+              displayColors: false,
+              intersect: false,
+              mode: 'index',
+              caretPadding: 10,
+              callbacks: {
+                label: function(context) {
+                  return 'Sales: ₱' + context.raw.toLocaleString();
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Payment Methods Chart
+    const paymentMethodsCtx = document.getElementById('paymentMethodsChart');
+    if (paymentMethodsCtx) {
+      const paymentMethodsChart = new Chart(paymentMethodsCtx, {
+        type: 'doughnut',
+        data: {
+          labels: <%- JSON.stringify(stats.paymentMethods.map(item => item.method)) %>,
+          datasets: [{
+            data: <%- JSON.stringify(stats.paymentMethods.map(item => item.total)) %>,
+            backgroundColor: stats.paymentMethods.map((_, index) => getChartColor(index)),
+            hoverBackgroundColor: stats.paymentMethods.map((_, index) => getChartColor(index)),
+            hoverBorderColor: 'rgba(234, 236, 244, 1)',
+          }],
+        },
+        options: {
+          maintainAspectRatio: false,
+          tooltips: {
+            backgroundColor: 'rgb(255, 255, 255)',
+            bodyColor: '#858796',
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            caretPadding: 10,
+          },
+          legend: {
+            display: false
+          },
+          cutout: '70%',
+        },
+      });
+    }
+
+    // Sales by Hour Chart
+    const salesByHourCtx = document.getElementById('salesByHourChart');
+    if (salesByHourCtx) {
+      const salesByHourChart = new Chart(salesByHourCtx, {
+        type: 'bar',
+        data: {
+          labels: <%- JSON.stringify(stats.salesByHour.map(item => item.hour + ':00')) %>,
+          datasets: [{
+            label: 'Sales',
+            backgroundColor: '#4e73df',
+            hoverBackgroundColor: '#2e59d9',
+            borderColor: '#4e73df',
+            data: <%- JSON.stringify(stats.salesByHour.map(item => item.total)) %>,
+          }],
+        },
+        options: {
+          maintainAspectRatio: false,
+          layout: {
+            padding: {
+              left: 10,
+              right: 25,
+              top: 25,
+              bottom: 0
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false,
+                drawBorder: false
+              },
+              ticks: {
+                maxTicksLimit: 24
+              }
+            },
+            y: {
+              ticks: {
+                min: 0,
+                maxTicksLimit: 5,
+                padding: 10,
+                callback: function(value) {
+                  return '₱' + value.toLocaleString();
+                }
+              },
+              grid: {
+                color: 'rgb(234, 236, 244)',
+                zeroLineColor: 'rgb(234, 236, 244)',
+                drawBorder: false,
+                borderDash: [2],
+                zeroLineBorderDash: [2]
+              }
+            },
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              titleMarginBottom: 10,
+              titleColor: '#6e707e',
+              titleFontSize: 14,
+              backgroundColor: 'rgb(255, 255, 255)',
+              bodyColor: '#858796',
+              borderColor: '#dddfeb',
+              borderWidth: 1,
+              xPadding: 15,
+              yPadding: 15,
+              displayColors: false,
+              caretPadding: 10,
+              callbacks: {
+                label: function(context) {
+                  return 'Sales: ₱' + context.raw.toLocaleString();
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Sales by Day Chart
+    const salesByDayCtx = document.getElementById('salesByDayChart');
+    if (salesByDayCtx) {
+      const salesByDayChart = new Chart(salesByDayCtx, {
+        type: 'bar',
+        data: {
+          labels: <%- JSON.stringify(stats.salesByDay.map(item => item.day)) %>,
+          datasets: [{
+            label: 'Sales',
+            backgroundColor: '#1cc88a',
+            hoverBackgroundColor: '#17a673',
+            borderColor: '#1cc88a',
+            data: <%- JSON.stringify(stats.salesByDay.map(item => item.total)) %>,
+          }],
+        },
+        options: {
+          maintainAspectRatio: false,
+          layout: {
+            padding: {
+              left: 10,
+              right: 25,
+              top: 25,
+              bottom: 0
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false,
+                drawBorder: false
+              },
+              ticks: {
+                maxTicksLimit: 7
+              }
+            },
+            y: {
+              ticks: {
+                min: 0,
+                maxTicksLimit: 5,
+                padding: 10,
+                callback: function(value) {
+                  return '₱' + value.toLocaleString();
+                }
+              },
+              grid: {
+                color: 'rgb(234, 236, 244)',
+                zeroLineColor: 'rgb(234, 236, 244)',
+                drawBorder: false,
+                borderDash: [2],
+                zeroLineBorderDash: [2]
+              }
+            },
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              titleMarginBottom: 10,
+              titleColor: '#6e707e',
+              titleFontSize: 14,
+              backgroundColor: 'rgb(255, 255, 255)',
+              bodyColor: '#858796',
+              borderColor: '#dddfeb',
+              borderWidth: 1,
+              xPadding: 15,
+              yPadding: 15,
+              displayColors: false,
+              caretPadding: 10,
+              callbacks: {
+                label: function(context) {
+                  return 'Sales: ₱' + context.raw.toLocaleString();
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  });
+</script>

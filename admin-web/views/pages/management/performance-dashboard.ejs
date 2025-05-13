@@ -1,0 +1,335 @@
+<%- include('../../partials/header') %>
+<%- include('../../partials/sidebar') %>
+
+<div class="content-wrapper">
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0"><%= title %></h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+            <li class="breadcrumb-item"><a href="/management/employees">Employees</a></li>
+            <li class="breadcrumb-item active">Performance Dashboard</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Filter Options</h3>
+            </div>
+            <div class="card-body">
+              <form id="filter-form" method="GET">
+                <div class="row">
+                  <div class="col-md-5">
+                    <div class="form-group">
+                      <label for="startDate">Start Date:</label>
+                      <input type="date" id="startDate" name="startDate" class="form-control" value="<%= filters.startDate || '' %>">
+                    </div>
+                  </div>
+                  <div class="col-md-5">
+                    <div class="form-group">
+                      <label for="endDate">End Date:</label>
+                      <input type="date" id="endDate" name="endDate" class="form-control" value="<%= filters.endDate || '' %>">
+                    </div>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="form-group">
+                      <label>&nbsp;</label>
+                      <div>
+                        <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Top Performers</h3>
+            </div>
+            <div class="card-body table-responsive p-0">
+              <table class="table table-hover text-nowrap">
+                <thead>
+                  <tr>
+                    <th>Employee</th>
+                    <th>Position</th>
+                    <th>Total Sales</th>
+                    <th>Orders</th>
+                    <th>Avg. Order Value</th>
+                    <th>Unique Customers</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (topPerformers.length === 0) { %>
+                    <tr>
+                      <td colspan="7" class="text-center">No data available</td>
+                    </tr>
+                  <% } else { %>
+                    <% topPerformers.forEach(function(employee) { %>
+                      <tr>
+                        <td><%= employee.employee_name %></td>
+                        <td><%= employee.position || 'N/A' %></td>
+                        <td>$<%= employee.total_sales ? parseFloat(employee.total_sales).toFixed(2) : '0.00' %></td>
+                        <td><%= employee.total_orders || 0 %></td>
+                        <td>$<%= employee.average_order_value ? parseFloat(employee.average_order_value).toFixed(2) : '0.00' %></td>
+                        <td><%= employee.unique_customers || 0 %></td>
+                        <td>
+                          <a href="/management/employees/<%= employee.employee_id %>/performance<%= filters.startDate ? '?startDate=' + filters.startDate : '' %><%= !filters.startDate && filters.endDate ? '?endDate=' + filters.endDate : '' %><%= filters.startDate && filters.endDate ? '&endDate=' + filters.endDate : '' %>" class="btn btn-sm btn-info">
+                            <i class="fas fa-chart-line"></i> Details
+                          </a>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Sales Performance</h3>
+            </div>
+            <div class="card-body">
+              <canvas id="sales-chart" height="300"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Average Order Value</h3>
+            </div>
+            <div class="card-body">
+              <canvas id="aov-chart" height="300"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Performance Metrics</h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="small-box bg-info">
+                    <div class="inner">
+                      <h3 id="total-sales">$0.00</h3>
+                      <p>Total Sales</p>
+                    </div>
+                    <div class="icon">
+                      <i class="fas fa-dollar-sign"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="small-box bg-success">
+                    <div class="inner">
+                      <h3 id="total-orders">0</h3>
+                      <p>Total Orders</p>
+                    </div>
+                    <div class="icon">
+                      <i class="fas fa-shopping-cart"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="small-box bg-warning">
+                    <div class="inner">
+                      <h3 id="avg-processing-time">0</h3>
+                      <p>Avg. Processing Time (min)</p>
+                    </div>
+                    <div class="icon">
+                      <i class="fas fa-clock"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="small-box bg-danger">
+                    <div class="inner">
+                      <h3 id="avg-rating">0.0</h3>
+                      <p>Avg. Customer Rating</p>
+                    </div>
+                    <div class="icon">
+                      <i class="fas fa-star"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<%- include('../../partials/footer') %>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const topPerformers = <%= JSON.stringify(topPerformers) %>;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    // Calculate overall metrics
+    let totalSales = 0;
+    let totalOrders = 0;
+    
+    topPerformers.forEach(employee => {
+      totalSales += parseFloat(employee.total_sales || 0);
+      totalOrders += parseInt(employee.total_orders || 0);
+    });
+    
+    // Update metrics display
+    document.getElementById('total-sales').textContent = '$' + totalSales.toFixed(2);
+    document.getElementById('total-orders').textContent = totalOrders;
+    
+    // Fetch additional metrics
+    fetchPerformanceData();
+    
+    // Create charts
+    createSalesChart();
+    createAOVChart();
+    
+    // Function to fetch performance data
+    function fetchPerformanceData() {
+      // Build query params
+      const params = new URLSearchParams();
+      params.append('metric', 'comparison');
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      
+      fetch(`/management/employees/0/performance/data?${params}`)
+        .then(response => response.json())
+        .then(data => {
+          // Calculate average processing time and rating
+          let totalProcessingTime = 0;
+          let totalRating = 0;
+          let processingCount = 0;
+          let ratingCount = 0;
+          
+          // Process data for each employee
+          data.forEach(employee => {
+            if (employee.avg_processing_time) {
+              totalProcessingTime += parseFloat(employee.avg_processing_time);
+              processingCount++;
+            }
+            
+            if (employee.avg_rating) {
+              totalRating += parseFloat(employee.avg_rating);
+              ratingCount++;
+            }
+          });
+          
+          // Update metrics
+          const avgProcessingTime = processingCount > 0 ? totalProcessingTime / processingCount : 0;
+          const avgRating = ratingCount > 0 ? totalRating / ratingCount : 0;
+          
+          document.getElementById('avg-processing-time').textContent = avgProcessingTime.toFixed(1);
+          document.getElementById('avg-rating').textContent = avgRating.toFixed(1);
+        })
+        .catch(error => {
+          console.error('Error fetching performance data:', error);
+        });
+    }
+    
+    // Function to create sales chart
+    function createSalesChart() {
+      const ctx = document.getElementById('sales-chart').getContext('2d');
+      
+      // Prepare data
+      const labels = topPerformers.map(employee => employee.employee_name);
+      const data = topPerformers.map(employee => parseFloat(employee.total_sales || 0));
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Total Sales ($)',
+            data: data,
+            backgroundColor: 'rgba(60, 141, 188, 0.8)',
+            borderColor: 'rgba(60, 141, 188, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Sales ($)'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Function to create AOV chart
+    function createAOVChart() {
+      const ctx = document.getElementById('aov-chart').getContext('2d');
+      
+      // Prepare data
+      const labels = topPerformers.map(employee => employee.employee_name);
+      const data = topPerformers.map(employee => parseFloat(employee.average_order_value || 0));
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Average Order Value ($)',
+            data: data,
+            backgroundColor: 'rgba(40, 167, 69, 0.8)',
+            borderColor: 'rgba(40, 167, 69, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Average Order Value ($)'
+              }
+            }
+          }
+        }
+      });
+    }
+  });
+</script>

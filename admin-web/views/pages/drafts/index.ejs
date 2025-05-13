@@ -1,0 +1,161 @@
+<!-- Draft Orders Management Page -->
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Draft Orders</h1>
+    <a href="/pos/draft" class="btn btn-primary">
+      <i class="fas fa-plus-circle me-2"></i> Create Draft Order
+    </a>
+  </div>
+
+  <% if (locals.flashMessages && flashMessages.success) { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <%= flashMessages.success %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% } %>
+  
+  <% if (locals.flashMessages && flashMessages.error) { %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <%= flashMessages.error %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% } %>
+
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+      <h6 class="m-0 font-weight-bold text-primary">All Draft Orders</h6>
+      <div class="input-group w-25">
+        <input type="text" id="draftSearch" class="form-control" placeholder="Search drafts...">
+        <span class="input-group-text"><i class="fas fa-search"></i></span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered" id="draftsTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Draft #</th>
+              <th>Date Created</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Total Amount</th>
+              <th>Created By</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (draftOrders && draftOrders.length > 0) { %>
+              <% draftOrders.forEach(draft => { %>
+                <tr>
+                  <td><%= draft.reference_number %></td>
+                  <td><%= new Date(draft.created_at).toLocaleString() %></td>
+                  <td>
+                    <% if (draft.customer_id) { %>
+                      <%= draft.customer_name %>
+                    <% } else { %>
+                      <span class="text-muted">Walk-in Customer</span>
+                    <% } %>
+                  </td>
+                  <td><%= draft.item_count %> items</td>
+                  <td>u20b1<%= parseFloat(draft.total_amount).toFixed(2) %></td>
+                  <td><%= draft.created_by_name %></td>
+                  <td>
+                    <div class="btn-group">
+                      <a href="/drafts/<%= draft.id %>" class="btn btn-sm btn-info">
+                        <i class="fas fa-eye"></i>
+                      </a>
+                      <a href="/drafts/<%= draft.id %>/edit" class="btn btn-sm btn-primary">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <a href="/drafts/<%= draft.id %>/convert" class="btn btn-sm btn-success" onclick="return confirm('Are you sure you want to convert this draft to a regular order?')">
+                        <i class="fas fa-check"></i>
+                      </a>
+                      <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteDraftModal" 
+                        data-draft-id="<%= draft.id %>"
+                        data-draft-number="<%= draft.reference_number %>">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" class="text-center">No draft orders found</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Draft Modal -->
+<div class="modal fade" id="deleteDraftModal" tabindex="-1" aria-labelledby="deleteDraftModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteDraftModalLabel">Delete Draft Order</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="deleteDraftForm" action="" method="POST">
+        <div class="modal-body">
+          <p>Are you sure you want to delete the following draft order?</p>
+          <p class="fw-bold" id="deleteDraftNumber"></p>
+          <p class="text-danger">This action cannot be undone. All items in this draft will be permanently removed.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Delete Draft</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const draftSearch = document.getElementById('draftSearch');
+    if (draftSearch) {
+      draftSearch.addEventListener('keyup', function() {
+        const searchValue = this.value.toLowerCase();
+        const table = document.getElementById('draftsTable');
+        const rows = table.getElementsByTagName('tr');
+        
+        for (let i = 1; i < rows.length; i++) { // Start from 1 to skip header
+          const draftNumber = rows[i].getElementsByTagName('td')[0];
+          const customerName = rows[i].getElementsByTagName('td')[2];
+          
+          if (!draftNumber) continue; // Skip if no draft number cell (like "No draft orders found" row)
+          
+          const draftText = draftNumber.textContent.toLowerCase();
+          const customerText = customerName.textContent.toLowerCase();
+          
+          if (draftText.includes(searchValue) || customerText.includes(searchValue)) {
+            rows[i].style.display = '';
+          } else {
+            rows[i].style.display = 'none';
+          }
+        }
+      });
+    }
+    
+    // Delete Draft Modal
+    const deleteDraftModal = document.getElementById('deleteDraftModal');
+    if (deleteDraftModal) {
+      deleteDraftModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const draftId = button.getAttribute('data-draft-id');
+        const draftNumber = button.getAttribute('data-draft-number');
+        
+        // Update the modal content
+        document.getElementById('deleteDraftNumber').textContent = `Draft Order #${draftNumber}`;
+        
+        // Set the form action
+        document.getElementById('deleteDraftForm').action = `/drafts/${draftId}/delete`;
+      });
+    }
+  });
+</script>

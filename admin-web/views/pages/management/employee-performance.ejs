@@ -1,0 +1,473 @@
+<%- include('../../partials/header') %>
+<%- include('../../partials/sidebar') %>
+
+<div class="content-wrapper">
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0"><%= title %></h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+            <li class="breadcrumb-item"><a href="/management/employees">Employees</a></li>
+            <li class="breadcrumb-item"><a href="/management/employees/<%= employee.id %>/edit"><%= employee.first_name %> <%= employee.last_name %></a></li>
+            <li class="breadcrumb-item active">Performance</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Filter Options</h3>
+            </div>
+            <div class="card-body">
+              <form id="filter-form" method="GET">
+                <div class="row">
+                  <div class="col-md-5">
+                    <div class="form-group">
+                      <label for="startDate">Start Date:</label>
+                      <input type="date" id="startDate" name="startDate" class="form-control" value="<%= filters.startDate || '' %>">
+                    </div>
+                  </div>
+                  <div class="col-md-5">
+                    <div class="form-group">
+                      <label for="endDate">End Date:</label>
+                      <input type="date" id="endDate" name="endDate" class="form-control" value="<%= filters.endDate || '' %>">
+                    </div>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="form-group">
+                      <label>&nbsp;</label>
+                      <div>
+                        <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
+                        <div class="btn-group mt-2 w-100">
+                          <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Export
+                          </button>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="/management/employees/<%= employee.id %>/performance/export?format=csv<%= filters.startDate ? '&startDate=' + filters.startDate : '' %><%= filters.endDate ? '&endDate=' + filters.endDate : '' %>">CSV</a>
+                            <a class="dropdown-item" href="/management/employees/<%= employee.id %>/performance/export<%= filters.startDate ? '?startDate=' + filters.startDate : '' %><%= !filters.startDate && filters.endDate ? '?endDate=' + filters.endDate : '' %><%= filters.startDate && filters.endDate ? '&endDate=' + filters.endDate : '' %>">JSON</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-3">
+          <div class="card card-primary card-outline">
+            <div class="card-body box-profile">
+              <div class="text-center">
+                <img class="profile-user-img img-fluid img-circle" src="/img/default-avatar.png" alt="User profile picture">
+              </div>
+              <h3 class="profile-username text-center"><%= employee.first_name %> <%= employee.last_name %></h3>
+              <p class="text-muted text-center"><%= employee.position || 'Employee' %></p>
+              <ul class="list-group list-group-unbordered mb-3">
+                <li class="list-group-item">
+                  <b>Total Sales</b> <a class="float-right">$<%= salesPerformance.total_sales ? parseFloat(salesPerformance.total_sales).toFixed(2) : '0.00' %></a>
+                </li>
+                <li class="list-group-item">
+                  <b>Total Orders</b> <a class="float-right"><%= salesPerformance.total_orders || 0 %></a>
+                </li>
+                <li class="list-group-item">
+                  <b>Avg. Order Value</b> <a class="float-right">$<%= salesPerformance.average_order_value ? parseFloat(salesPerformance.average_order_value).toFixed(2) : '0.00' %></a>
+                </li>
+                <li class="list-group-item">
+                  <b>Unique Customers</b> <a class="float-right"><%= salesPerformance.unique_customers || 0 %></a>
+                </li>
+                <li class="list-group-item">
+                  <b>Avg. Processing Time</b> <a class="float-right"><%= processingTimeMetrics.average_processing_time ? parseFloat(processingTimeMetrics.average_processing_time).toFixed(2) : '0.00' %> min</a>
+                </li>
+                <li class="list-group-item">
+                  <b>Avg. Customer Rating</b> <a class="float-right"><%= satisfactionMetrics.average_rating ? parseFloat(satisfactionMetrics.average_rating).toFixed(2) : '0.00' %> / 5</a>
+                </li>
+              </ul>
+              <div class="row">
+                <div class="col-6">
+                  <a href="/management/employees/<%= employee.id %>/hours<%= filters.startDate ? '?startDate=' + filters.startDate : '' %><%= !filters.startDate && filters.endDate ? '?endDate=' + filters.endDate : '' %><%= filters.startDate && filters.endDate ? '&endDate=' + filters.endDate : '' %>" class="btn btn-info btn-block">
+                    <i class="fas fa-clock"></i> Hours
+                  </a>
+                </div>
+                <div class="col-6">
+                  <a href="/management/employees/<%= employee.id %>/goals" class="btn btn-success btn-block">
+                    <i class="fas fa-bullseye"></i> Goals
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-9">
+          <div class="card">
+            <div class="card-header p-2">
+              <ul class="nav nav-pills">
+                <li class="nav-item"><a class="nav-link active" href="#sales" data-toggle="tab">Sales Performance</a></li>
+                <li class="nav-item"><a class="nav-link" href="#processing" data-toggle="tab">Processing Time</a></li>
+                <li class="nav-item"><a class="nav-link" href="#satisfaction" data-toggle="tab">Customer Satisfaction</a></li>
+                <li class="nav-item"><a class="nav-link" href="#goals" data-toggle="tab">Performance Goals</a></li>
+              </ul>
+            </div>
+            <div class="card-body">
+              <div class="tab-content">
+                <div class="active tab-pane" id="sales">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5>Sales Over Time</h5>
+                      <canvas id="sales-chart" height="300"></canvas>
+                    </div>
+                  </div>
+                  <div class="row mt-4">
+                    <div class="col-md-6">
+                      <div class="info-box bg-info">
+                        <span class="info-box-icon"><i class="fas fa-shopping-cart"></i></span>
+                        <div class="info-box-content">
+                          <span class="info-box-text">Average Items Per Order</span>
+                          <span class="info-box-number"><%= salesPerformance.average_items_per_order ? parseFloat(salesPerformance.average_items_per_order).toFixed(2) : '0.00' %></span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="info-box bg-success">
+                        <span class="info-box-icon"><i class="fas fa-users"></i></span>
+                        <div class="info-box-content">
+                          <span class="info-box-text">Unique Customers</span>
+                          <span class="info-box-number"><%= salesPerformance.unique_customers || 0 %></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="tab-pane" id="processing">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h5>Processing Time Distribution</h5>
+                      <canvas id="processing-chart" height="300"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                      <h5>Processing Time Metrics</h5>
+                      <table class="table table-bordered">
+                        <thead>
+                          <tr>
+                            <th>Time Range</th>
+                            <th>Orders</th>
+                            <th>Percentage</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <% if (processingTimeMetrics.processing_time_ranges) { %>
+                            <% for (const [range, count] of Object.entries(processingTimeMetrics.processing_time_ranges)) { %>
+                              <tr>
+                                <td><%= range %></td>
+                                <td><%= count %></td>
+                                <td>
+                                  <% const percentage = processingTimeMetrics.total_orders > 0 ? (count / processingTimeMetrics.total_orders) * 100 : 0; %>
+                                  <%= percentage.toFixed(2) %>%
+                                </td>
+                              </tr>
+                            <% } %>
+                          <% } else { %>
+                            <tr>
+                              <td colspan="3" class="text-center">No data available</td>
+                            </tr>
+                          <% } %>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="tab-pane" id="satisfaction">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h5>Customer Rating Distribution</h5>
+                      <canvas id="rating-chart" height="300"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                      <h5>Recent Customer Feedback</h5>
+                      <div class="table-responsive">
+                        <table class="table table-bordered">
+                          <thead>
+                            <tr>
+                              <th>Order ID</th>
+                              <th>Rating</th>
+                              <th>Feedback</th>
+                              <th>Date</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <% if (satisfactionMetrics.feedback && satisfactionMetrics.feedback.length > 0) { %>
+                              <% satisfactionMetrics.feedback.slice(0, 5).forEach(function(feedback) { %>
+                                <tr>
+                                  <td><%= feedback.order_id %></td>
+                                  <td>
+                                    <% for (let i = 0; i < 5; i++) { %>
+                                      <i class="<%= i < feedback.rating ? 'fas' : 'far' %> fa-star text-warning"></i>
+                                    <% } %>
+                                  </td>
+                                  <td><%= feedback.feedback || 'No comment' %></td>
+                                  <td><%= new Date(feedback.created_at).toLocaleDateString() %></td>
+                                </tr>
+                              <% }); %>
+                            <% } else { %>
+                              <tr>
+                                <td colspan="4" class="text-center">No feedback available</td>
+                              </tr>
+                            <% } %>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="tab-pane" id="goals">
+                  <div class="row mb-3">
+                    <div class="col-md-12">
+                      <a href="/management/employees/<%= employee.id %>/goals" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Manage Goals
+                      </a>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="table-responsive">
+                        <table class="table table-bordered">
+                          <thead>
+                            <tr>
+                              <th>Goal Type</th>
+                              <th>Target</th>
+                              <th>Target Date</th>
+                              <th>Status</th>
+                              <th>Progress</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <% if (goals && goals.length > 0) { %>
+                              <% goals.forEach(function(goal) { %>
+                                <tr>
+                                  <td><%= goal.goal_type %></td>
+                                  <td>
+                                    <% if (goal.goal_type.includes('sales') || goal.goal_type.includes('revenue')) { %>
+                                      $<%= parseFloat(goal.target_value).toFixed(2) %>
+                                    <% } else { %>
+                                      <%= goal.target_value %>
+                                    <% } %>
+                                  </td>
+                                  <td><%= new Date(goal.target_date).toLocaleDateString() %></td>
+                                  <td>
+                                    <% if (goal.status === 'completed') { %>
+                                      <span class="badge badge-success">Completed</span>
+                                    <% } else if (goal.status === 'failed') { %>
+                                      <span class="badge badge-danger">Failed</span>
+                                    <% } else if (goal.status === 'cancelled') { %>
+                                      <span class="badge badge-secondary">Cancelled</span>
+                                    <% } else { %>
+                                      <span class="badge badge-primary">Active</span>
+                                    <% } %>
+                                  </td>
+                                  <td>
+                                    <% 
+                                      let progress = 0;
+                                      if (goal.actual_value) {
+                                        progress = Math.min(100, (goal.actual_value / goal.target_value) * 100);
+                                      }
+                                    %>
+                                    <div class="progress">
+                                      <div class="progress-bar <%= progress >= 100 ? 'bg-success' : 'bg-primary' %>" role="progressbar" style="width: <%= progress.toFixed(0) %>%" aria-valuenow="<%= progress.toFixed(0) %>" aria-valuemin="0" aria-valuemax="100"><%= progress.toFixed(0) %>%</div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              <% }); %>
+                            <% } else { %>
+                              <tr>
+                                <td colspan="5" class="text-center">No goals set</td>
+                              </tr>
+                            <% } %>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<%- include('../../partials/footer') %>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Sales performance data
+    const salesPerformance = <%- JSON.stringify(salesPerformance || {}) %>;
+    const processingTimeMetrics = <%- JSON.stringify(processingTimeMetrics || {}) %>;
+    const satisfactionMetrics = <%- JSON.stringify(satisfactionMetrics || {}) %>;
+    
+    // Create sales chart
+    if (salesPerformance.sales_by_day && salesPerformance.sales_by_day.length > 0) {
+      const salesCtx = document.getElementById('sales-chart').getContext('2d');
+      
+      // Prepare data
+      const labels = salesPerformance.sales_by_day.map(day => new Date(day.sale_date).toLocaleDateString());
+      const salesData = salesPerformance.sales_by_day.map(day => parseFloat(day.daily_sales || 0));
+      const orderData = salesPerformance.sales_by_day.map(day => parseInt(day.order_count || 0));
+      
+      new Chart(salesCtx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Daily Sales ($)',
+              data: salesData,
+              backgroundColor: 'rgba(60, 141, 188, 0.2)',
+              borderColor: 'rgba(60, 141, 188, 1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Orders',
+              data: orderData,
+              backgroundColor: 'rgba(210, 214, 222, 0.2)',
+              borderColor: 'rgba(210, 214, 222, 1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              position: 'left',
+              title: {
+                display: true,
+                text: 'Sales ($)'
+              }
+            },
+            y1: {
+              beginAtZero: true,
+              position: 'right',
+              grid: {
+                drawOnChartArea: false
+              },
+              title: {
+                display: true,
+                text: 'Orders'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Create processing time chart
+    if (processingTimeMetrics.processing_time_ranges) {
+      const processingCtx = document.getElementById('processing-chart').getContext('2d');
+      
+      // Prepare data
+      const labels = Object.keys(processingTimeMetrics.processing_time_ranges);
+      const data = Object.values(processingTimeMetrics.processing_time_ranges);
+      
+      new Chart(processingCtx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: [
+              'rgba(75, 192, 192, 0.8)',
+              'rgba(54, 162, 235, 0.8)',
+              'rgba(153, 102, 255, 0.8)',
+              'rgba(255, 159, 64, 0.8)',
+              'rgba(255, 99, 132, 0.8)'
+            ],
+            borderColor: [
+              'rgba(75, 192, 192, 1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(153, 102, 255, 1)',
+              'rgba(255, 159, 64, 1)',
+              'rgba(255, 99, 132, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'right'
+            },
+            title: {
+              display: true,
+              text: 'Order Processing Time Distribution'
+            }
+          }
+        }
+      });
+    }
+    
+    // Create rating chart
+    if (satisfactionMetrics.rating_distribution) {
+      const ratingCtx = document.getElementById('rating-chart').getContext('2d');
+      
+      // Prepare data
+      const labels = Object.keys(satisfactionMetrics.rating_distribution).map(rating => `${rating} Star`);
+      const data = Object.values(satisfactionMetrics.rating_distribution);
+      
+      new Chart(ratingCtx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Number of Ratings',
+            data: data,
+            backgroundColor: 'rgba(255, 193, 7, 0.8)',
+            borderColor: 'rgba(255, 193, 7, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Count'
+              }
+            }
+          }
+        }
+      });
+    }
+  });
+</script>

@@ -1,0 +1,229 @@
+<%- include('../../partials/header') %>
+<%- include('../../partials/sidebar') %>
+
+<div class="content-wrapper">
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0"><%= title %></h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+            <li class="breadcrumb-item"><a href="/management/employees">Employees</a></li>
+            <li class="breadcrumb-item"><a href="/management/employees/<%= employee.id %>/edit"><%= employee.first_name %> <%= employee.last_name %></a></li>
+            <li class="breadcrumb-item active">Hours Report</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Filter Options</h3>
+            </div>
+            <div class="card-body">
+              <form id="filter-form" method="GET">
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="startDate">Start Date:</label>
+                      <input type="date" id="startDate" name="startDate" class="form-control" value="<%= filters.startDate || '' %>">
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="endDate">End Date:</label>
+                      <input type="date" id="endDate" name="endDate" class="form-control" value="<%= filters.endDate || '' %>">
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label>&nbsp;</label>
+                      <div>
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <a href="/management/employees/<%= employee.id %>/hours" class="btn btn-default">Reset</a>
+                        <div class="btn-group float-right">
+                          <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Export
+                          </button>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="/management/employees/<%= employee.id %>/hours/export?format=csv<%= filters.startDate ? '&startDate=' + filters.startDate : '' %><%= filters.endDate ? '&endDate=' + filters.endDate : '' %>">CSV</a>
+                            <a class="dropdown-item" href="/management/employees/<%= employee.id %>/hours/export<%= filters.startDate ? '?startDate=' + filters.startDate : '' %><%= !filters.startDate && filters.endDate ? '?endDate=' + filters.endDate : '' %><%= filters.startDate && filters.endDate ? '&endDate=' + filters.endDate : '' %>">JSON</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Summary</h3>
+            </div>
+            <div class="card-body">
+              <div class="info-box bg-info">
+                <span class="info-box-icon"><i class="far fa-clock"></i></span>
+                <div class="info-box-content">
+                  <span class="info-box-text">Total Hours</span>
+                  <span class="info-box-number"><%= hoursData.totalHours.toFixed(2) %></span>
+                </div>
+              </div>
+              
+              <h5>Hours by Shift Type</h5>
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Shift Type</th>
+                    <th>Hours</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% for (const [type, hours] of Object.entries(hoursData.shiftTypeSummary)) { %>
+                    <tr>
+                      <td><%= type %></td>
+                      <td><%= hours.toFixed(2) %></td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Shift Details</h3>
+            </div>
+            <div class="card-body table-responsive p-0">
+              <table class="table table-hover text-nowrap">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Shift Type</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Hours</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (hoursData.shifts.length === 0) { %>
+                    <tr>
+                      <td colspan="6" class="text-center">No shifts found</td>
+                    </tr>
+                  <% } else { %>
+                    <% hoursData.shifts.forEach(function(shift) { %>
+                      <tr>
+                        <td><%= new Date(shift.start_time).toLocaleDateString() %></td>
+                        <td><%= shift.shift_type %></td>
+                        <td><%= new Date(shift.start_time).toLocaleString() %></td>
+                        <td><%= new Date(shift.end_time).toLocaleString() %></td>
+                        <td><%= shift.hours_worked.toFixed(2) %></td>
+                        <td>
+                          <% if (shift.status === 'completed') { %>
+                            <span class="badge badge-success">Completed</span>
+                          <% } else if (shift.status === 'cancelled') { %>
+                            <span class="badge badge-danger">Cancelled</span>
+                          <% } else { %>
+                            <span class="badge badge-primary">Scheduled</span>
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Hours Chart</h3>
+            </div>
+            <div class="card-body">
+              <canvas id="hours-chart" height="300"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<%- include('../../partials/footer') %>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Prepare data for chart
+    const shifts = <%= JSON.stringify(hoursData.shifts) %>;
+    
+    // Group shifts by date
+    const shiftsByDate = {};
+    shifts.forEach(shift => {
+      const date = new Date(shift.start_time).toLocaleDateString();
+      if (!shiftsByDate[date]) {
+        shiftsByDate[date] = 0;
+      }
+      shiftsByDate[date] += shift.hours_worked;
+    });
+    
+    // Sort dates
+    const sortedDates = Object.keys(shiftsByDate).sort((a, b) => new Date(a) - new Date(b));
+    
+    // Create chart
+    const ctx = document.getElementById('hours-chart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: sortedDates,
+        datasets: [{
+          label: 'Hours Worked',
+          data: sortedDates.map(date => shiftsByDate[date]),
+          backgroundColor: 'rgba(60, 141, 188, 0.8)',
+          borderColor: 'rgba(60, 141, 188, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Hours'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          }
+        }
+      }
+    });
+  });
+</script>

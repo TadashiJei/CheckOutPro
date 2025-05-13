@@ -1,0 +1,14 @@
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/app/App.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/db/Database.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/db/OrderDAO.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/db/ProductDAO.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/db/UserDAO.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/models/Order.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/models/OrderItem.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/models/Product.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/models/User.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/ui/CustomerMode.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/ui/LoginScreen.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/ui/OrderScreen.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/ui/RegisterScreen.java
+/Users/jay/TadashiJei/CheckOutPro/java-pos/src/main/java/com/checkoutpro/utils/UIManager.java
